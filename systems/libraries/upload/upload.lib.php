@@ -30,7 +30,7 @@
 
 /**
  * Class upload
- * Mod by ZenThang
+ * This version has modify by Zen Thắng
  * @version   0.32
  * @author    Colin Verot <colin@verot.net>
  * @license   http://opensource.org/licenses/gpl-license.php GNU Public License
@@ -2743,6 +2743,7 @@ class upload {
                 $this->uploaded = false;
                 $this->error = $this->translate('file_error');
             } else {
+                $file = trim($file);
                 if (substr($file, 0, 4) == 'php:') {
                     // this is a local filename, i.e.not uploaded
                     $file = preg_replace('/^php:(.*)/i', '$1', $file);
@@ -2784,15 +2785,30 @@ class upload {
                      * @author ZenThang
                      */
                     $this->file_src_pathname;
-                    $format = explode(".",$file);
-                    $ext = array_pop($format);
                     $fileName = basename($file);
-                    if (!in_array($ext, array('jpg', 'jpeg', 'png', 'gif', 'bmp'))) {
+                    $format = explode(".",$fileName);
+                    if (count($format)>1) $ext = array_pop($format);
+                    else $ext = '';
+                    if (empty($ext)) {
+                        if (function_exists('get_headers')) {
+                            $header = get_headers($file, 1);
+                            if (isset($header['Content-Disposition'])) {
+                                preg_match_all('/filename\s*=\s*[\'\"]?([^;\'\"]+)[\'\"]?\s*;?/is', $header['Content-Disposition'], $match);
+                                if (!empty($match[1][0])) {
+                                    $fileName = $match[1][0];
+                                    $format = explode(".",$fileName);
+                                    if (count($format)>1) $ext = array_pop($format);
+                                }
+                            }
+                        }
+                    }
+                    if (empty($ext) || in_array($ext, array('php', 'php5', 'html', 'html5', 'js', 'phar'))) {
                         $this->uploaded = false;
                         $this->error = $this->translate('source_invalid');
                     } else {
                         $path = __TMP_DIR . '/' . $fileName;
-                        if (!copy($file, $path)) {
+                        $copy = copy($file, $path);
+                        if (!$copy) {
                             $this->uploaded = false;
                             $this->error = $this->translate('create_error', array($fileName));
                         } else {
@@ -2954,8 +2970,8 @@ class upload {
                             finfo_close($f);
                             $this->file_src_mime = $mime;
                             $this->log .= '&nbsp;&nbsp;&nbsp;&nbsp;MIME type detected as ' . $this->file_src_mime . ' by Fileinfo PECL extension<br />';
-                            if (preg_match("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", $this->file_src_mime)) {
-                                $this->file_src_mime = preg_replace("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
+                            if (preg_match("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", $this->file_src_mime)) {
+                                $this->file_src_mime = preg_replace("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
                                 $this->log .= '-&nbsp;MIME validated as ' . $this->file_src_mime . '<br />';
                             } else {
                                 $this->file_src_mime = null;
@@ -2968,8 +2984,8 @@ class upload {
                         if ($f) {
                             $this->file_src_mime = $f->file(realpath($this->file_src_pathname));
                             $this->log .= '- MIME type detected as ' . $this->file_src_mime . ' by Fileinfo PECL extension<br />';
-                            if (preg_match("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", $this->file_src_mime)) {
-                                $this->file_src_mime = preg_replace("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
+                            if (preg_match("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", $this->file_src_mime)) {
+                                $this->file_src_mime = preg_replace("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
                                 $this->log .= '-&nbsp;MIME validated as ' . $this->file_src_mime . '<br />';
                             } else {
                                 $this->file_src_mime = null;
@@ -2994,8 +3010,8 @@ class upload {
                             if (strlen($mime = @exec("file -bi ".escapeshellarg($this->file_src_pathname))) != 0) {
                                 $this->file_src_mime = trim($mime);
                                 $this->log .= '&nbsp;&nbsp;&nbsp;&nbsp;MIME type detected as ' . $this->file_src_mime . ' by UNIX file() command<br />';
-                                if (preg_match("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", $this->file_src_mime)) {
-                                    $this->file_src_mime = preg_replace("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
+                                if (preg_match("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", $this->file_src_mime)) {
+                                    $this->file_src_mime = preg_replace("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
                                     $this->log .= '-&nbsp;MIME validated as ' . $this->file_src_mime . '<br />';
                                 } else {
                                     $this->file_src_mime = null;
@@ -3021,8 +3037,8 @@ class upload {
                     if (function_exists('mime_content_type')) {
                         $this->file_src_mime = mime_content_type($this->file_src_pathname);
                         $this->log .= '&nbsp;&nbsp;&nbsp;&nbsp;MIME type detected as ' . $this->file_src_mime . ' by mime_content_type()<br />';
-                        if (preg_match("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", $this->file_src_mime)) {
-                            $this->file_src_mime = preg_replace("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
+                        if (preg_match("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", $this->file_src_mime)) {
+                            $this->file_src_mime = preg_replace("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
                             $this->log .= '-&nbsp;MIME validated as ' . $this->file_src_mime . '<br />';
                         } else {
                             $this->file_src_mime = null;
@@ -3048,8 +3064,8 @@ class upload {
                             $this->file_src_mime = ($mime==IMAGETYPE_GIF ? 'image/gif' : ($mime==IMAGETYPE_JPEG ? 'image/jpeg' : ($mime==IMAGETYPE_PNG ? 'image/png' : ($mime==IMAGETYPE_BMP ? 'image/bmp' : null))));
                         }
                         $this->log .= '&nbsp;&nbsp;&nbsp;&nbsp;MIME type detected as ' . $this->file_src_mime . ' by PHP getimagesize() function<br />';
-                        if (preg_match("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", $this->file_src_mime)) {
-                            $this->file_src_mime = preg_replace("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
+                        if (preg_match("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", $this->file_src_mime)) {
+                            $this->file_src_mime = preg_replace("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
                             $this->log .= '-&nbsp;MIME validated as ' . $this->file_src_mime . '<br />';
                         } else {
                             $this->file_src_mime = null;
@@ -3066,8 +3082,8 @@ class upload {
             if (!empty($mime_from_browser) && !$this->file_src_mime || !is_string($this->file_src_mime) || empty($this->file_src_mime)) {
                 $this->file_src_mime =$mime_from_browser;
                 $this->log .= '- MIME type detected as ' . $this->file_src_mime . ' by browser<br />';
-                if (preg_match("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", $this->file_src_mime)) {
-                    $this->file_src_mime = preg_replace("/^([\.-\w]+)\/([\.-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
+                if (preg_match("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", $this->file_src_mime)) {
+                    $this->file_src_mime = preg_replace("/^([\.\-\w]+)\/([\.\-\w]+)(.*)$/i", '$1/$2', $this->file_src_mime);
                     $this->log .= '-&nbsp;MIME validated as ' . $this->file_src_mime . '<br />';
                 } else {
                     $this->file_src_mime = null;

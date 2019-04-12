@@ -1,12 +1,7 @@
 <?php
 /**
- * name = Module cpanel
- * icon = icon-hospital
- * position = 60
- */
-/**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -21,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -37,10 +32,11 @@ $tree[] = url(HOME.'/admin/general', 'Tổng quan');
 $tree[] = url(HOME.'/admin/general/modulescp', 'Module Cpanel');
 ZenView::set_breadcrumb($tree);
 
-if (!empty($_GET['appFollow'])) {
+$getAppFollow = ZenInput::get('appFollow');
+if ($getAppFollow) {
     $a = new ZenRouter($registry);
     $a->setPath(__MODULES_PATH);
-    $a->loader($_GET['appFollow']);
+    $a->loader($getAppFollow);
     exit;
 }
 $obj->view->data = $data;

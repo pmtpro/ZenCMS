@@ -1,0 +1,13 @@
+RewriteEngine On
+# Path of the working directory
+# Example: http://localhost/ => RewriteBase /
+# If working directory is http://localhost/zencms/ => RewriteBase /zencms/
+RewriteBase /zencms-build/
+RewriteRule ^files\/(.*)\.php$ download/get?_file_=$1.php [L,QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !/index.php$
+RewriteRule ^(.*)$ index.php?_zen_router_=$1 [L,QSA]
+# Ban ip
+order allow,deny
+allow from all

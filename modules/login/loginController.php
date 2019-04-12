@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -32,6 +32,8 @@ Class loginController Extends ZenController
          * set the page title
          */
         ZenView::set_title('Đăng nhập thành viên');
+        ZenView::noindex();
+
         $security = load_library('security');
         $model = $this->model->get('login');
         $data_login['limit_login'] = FALSE;
@@ -41,50 +43,46 @@ Class loginController Extends ZenController
         /**
          * if user is logged, redirect to home page
          */
-        if (isset($this->user['id'])) {
+        if ($model->logged()) {
             redirect(HOME);
-            exit;
         }
-        if (isset($_SESSION['session_num_errors_login'])) {
-            if ($_SESSION['session_num_errors_login'] >= 3) {
-                $data_login['limit_login'] = TRUE;
-            }
-        } else $_SESSION['session_num_errors_login'] = 0;
-
+        if ($model->login_flood()) {
+            $data_login['limit_login'] = TRUE;
+        }
         /**
          * check login
          */
         if (isset($_POST['submit-login'])) {
-            if ($security->check_token('token_login')) {
-                $data_login['username'] = $security->cleanXSS($_POST['username']);
-                $data_login['password'] = $_POST['password'];
-                if ($data_login['limit_login'] == TRUE) {
-                    if ($security->check_token('captcha_code') == FALSE) {
-                        $data_login['confirm_login_fail'] = TRUE;
+            if (empty($_POST['username']) || empty($_POST['password'])) {
+                ZenView::set_notice('Bạn cần nhập tài khoản và mật khẩu');
+            } else {
+                if ($security->check_token('token_login')) {
+                    $data_login['username'] = $security->cleanXSS($_POST['username']);
+                    $data_login['password'] = $_POST['password'];
+                    if ($data_login['limit_login']) {
+                        if (!$security->check_token('captcha_code')) {
+                            $data_login['confirm_login_fail'] = TRUE;
+                        }
                     }
-                }
-                if ($model->check_login($data_login) == FALSE or $data_login['confirm_login_fail'] == TRUE) {
-                    if (!isset($_SESSION['session_num_errors_login'])) {
-                        $_SESSION['session_num_errors_login'] = 0;
-                    }
-                    $_SESSION['session_num_errors_login'] = (int)$_SESSION['session_num_errors_login'];
-                    $_SESSION['session_num_errors_login']++;
-                    if ($_SESSION['session_num_errors_login'] >= 3) {
-                        $data_login['limit_login'] = TRUE;
-                    }
-                    if ($data_login['confirm_login_fail'] == TRUE) {
-                        ZenView::set_error('Sai mã xác nhận');
-                    } else ZenView::set_error('Sai tên đăng nhập hoặc mật khẩu');
-                } else {
-                    $_SESSION['session_num_errors_login'] = 0;
-                    $update = $model->update_login(_gen_login_token());
-                    if ($update) {
-                        $data_user = $model->get_data_user();
-                        if (!empty($_POST['remember_me'])) {
-                            $save_cookie = 3600 * 24 * 365;
-                        } else $save_cookie = 0;
-                        _gen_session_login($data_user, $save_cookie);
-                        ZenView::set_success('Đăng nhập thành công!', ZPUBLIC, HOME);
+                    if (!$model->check_login($data_login) || $data_login['confirm_login_fail']) {
+                        $model->update_login_flood();
+                        if ($model->login_flood()) {
+                            $data_login['limit_login'] = TRUE;
+                        }
+                        if ($data_login['confirm_login_fail']) {
+                            ZenView::set_error('Sai mã xác nhận');
+                        } else ZenView::set_error('Sai tên đăng nhập hoặc mật khẩu');
+                    } else {
+                        $model->reset_login_flood();
+                        $update = $model->update_login(_gen_login_token());
+                        if ($update) {
+                            $data_user = $model->get_data_user();
+                            $save_cookie = 0;
+                            if (!empty($_POST['remember_me'])) $save_cookie = $model->cookie_time_hold();
+                            _gen_session_login($data_user, $save_cookie);
+                            $_get_urlBack = ZenInput::get('urlBack', true);
+                            ZenView::set_success('Đăng nhập thành công!', ZPUBLIC, $_get_urlBack ? urlencode($_get_urlBack) : HOME);
+                        }
                     }
                 }
             }
@@ -99,5 +97,4 @@ Class loginController Extends ZenController
         $this->view->data = $data;
         $this->view->show('login');
     }
-
 }

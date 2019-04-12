@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 Zen Thắng, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -18,7 +18,7 @@
  * @package ZenCMS
  * @copyright 2012-2014 ZenThang
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email support@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -32,6 +32,134 @@ Class blogModel Extends ZenModel
     public $total_result = 0;
     private $init_where = array('status' => "`status`='0'");
     private $status_list = array(0,1,2);
+    private $order_value = array(
+        'new'   => array('time_update' => 'DESC', 'time' => 'DESC'),
+        'hot'   => array('view' => 'DESC'),
+        'rand'  => array('RAND()' => ''),
+        'same'  => array('RAND()' => ''),
+        'custom'=> array('weight' => 'ASC', 'time_update' => 'DESC', 'time' => 'DESC')
+    );
+
+    public function list_new_post($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_post($parentID, 'new', $pos, $default_limit, $getPaging);
+    }
+    public function list_hot_post($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_post($parentID, 'hot', $pos, $default_limit, $getPaging);
+    }
+    public function list_rand_post($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_post($parentID, 'rand', $pos, $default_limit, $getPaging);
+    }
+    public function list_same_post($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_post($parentID, 'same', $pos, $default_limit, $getPaging);
+    }
+    public function list_custom_post($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_post($parentID, 'custom', $pos, $default_limit, $getPaging);
+    }
+
+    public function list_post($parentID = 0, $order = 'custom', $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        global $registry;
+        $paging = null;
+        $hook = $registry->hook->get('blog');
+
+        /**
+         * config hook name
+         */
+        $hook_name['gdata']         = 'list_blog_' . $pos;
+        $hook_name['get']           = 'list_blog_' . $pos . '_get';
+        $hook_name['limit']         = 'list_blog_' . $pos . '_limit';
+        $hook_name['order']         = 'list_blog_' . $pos . '_order';
+        $hook_name['bold_child']    = 'list_blog_' . $pos . '_bold_child';
+
+        if (isset($this->order_value[$order])) {
+            $order_val = $this->order_value[$order];
+        } else $order_val = $this->order_value['custom'];
+
+        /**
+         * xxx_limit hook*
+         */
+        $limit = $hook->loader($hook_name['limit'], $default_limit);
+
+        if ($getPaging && $limit) {
+            $paging = load_library('pagination');
+            $paging->setLimit($limit);
+            $paging->SetGetPage($getPaging);
+            $start = $paging->getStart();
+            $limit = $start . ',' . $limit;
+        }
+        $list_post = $this->get_list_blog($parentID, array(
+                'get'       => $hook->loader($hook_name['get'], 'id, parent, uid, url, name, title, des, time, view, icon'), //xxx_get hook*
+                'type'      => 'post',
+                'order'     => $hook->loader($hook_name['order'], $order_val), //xxx_order hook*
+                'limit'     => $limit,
+                'both_child'=> $hook->loader($hook_name['bold_child'], true),
+                'pos_name'  => $hook_name['gdata']
+            ), $getPaging ? true : false
+        );
+
+        if ($getPaging && $limit) {
+            $paging->setTotal($this->total_result);
+            ZenView::set_paging($paging->navi_page(), $pos);
+        }
+        return $list_post;
+    }
+
+
+    public function list_new_cat($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_cat($parentID, 'new', $pos, $default_limit, $getPaging);
+    }
+    public function list_hot_cat($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_cat($parentID, 'hot', $pos, $default_limit, $getPaging);
+    }
+    public function list_rand_cat($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_cat($parentID, 'rand', $pos, $default_limit, $getPaging);
+    }
+    public function list_same_cat($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_cat($parentID, 'same', $pos, $default_limit, $getPaging);
+    }
+    public function list_custom_cat($parentID = 0, $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        return $this->list_cat($parentID, 'custom', $pos, $default_limit, $getPaging);
+    }
+
+    public function list_cat($parentID = 0, $order = 'custom', $pos = ZPUBLIC, $default_limit = 10, $getPaging = null) {
+        global $registry;
+        $paging = null;
+        $hook = $registry->hook->get('blog');
+        $hook_name['get']           = 'list_blog_' . $pos . '_get';
+        $hook_name['limit']         = 'list_blog_' . $pos . '_limit';
+        $hook_name['order']         = 'list_blog_' . $pos . '_order';
+        $hook_name['bold_child']    = 'list_blog_' . $pos . '_bold_child';
+
+        if (isset($this->order_value[$order])) {
+            $order_val = $this->order_value[$order];
+        } else $order_val = $this->order_value['custom'];
+
+        /**
+         * xxx_limit hook*
+         */
+        $limit = $hook->loader($hook_name['limit'], $default_limit);
+
+        if ($getPaging && $limit) {
+            $paging = load_library('pagination');
+            $paging->setLimit($limit);
+            $paging->SetGetPage($getPaging);
+            $start = $paging->getStart();
+            $limit = $start . ',' . $limit;
+        }
+        $list_cat = $this->get_list_blog($parentID, array(
+                'get' => $hook->loader($hook_name['get'], 'id, parent, uid, url, name, title, des, time, view, icon'), //xxx_get hook*
+                'type' => 'folder',
+                'order' => $hook->loader($hook_name['order'], $order_val), //xxx_order hook*
+                'limit' => $limit,
+                'both_child' => $hook->loader($hook_name['bold_child'], true)
+            ), $getPaging ? true : false
+        );
+
+        if ($getPaging && $limit) {
+            $paging->setTotal($this->total_result);
+            ZenView::set_paging($paging->navi_page(), $pos);
+        }
+        return $list_cat;
+    }
 
     public function set_filter($colName, $filter) {
         if (empty($colName)) return false;
@@ -116,8 +244,9 @@ Class blogModel Extends ZenModel
     }
 
     /**
-     * @param int $parent: blog ID
+     * @param int $parent
      * @param array $options
+     * @param bool $get_total
      * @return array|mixed|null
      */
     public function get_list_blog($parent = 0, $options = array(
@@ -125,8 +254,9 @@ Class blogModel Extends ZenModel
         'type' => NULL,
         'order' => array('weight' => 'ASC', 'time' => 'DESC'),
         'limit' => false,
-        'both_child' => true
-    )) {
+        'both_child' => true,
+        'pos_name' => null
+    ), $get_total = true) {
         $cats = array();
         $where_arr = array();
         $select_order = "`weight` ASC, `time` DESC";
@@ -153,18 +283,14 @@ Class blogModel Extends ZenModel
         /**
          * set what get
          */
-        if (empty($options['get'])) {
-            $options['get'] = '*';
-        }
+        $options['get'] = empty($options['get']) ? '*' : $options['get'];
         $get_what = $this->explode_what_gets($options['get'], array('type'));
 
         /**
          * Set select type
          */
         if (!empty($options['type'])) {
-            if (!is_array($options['type'])) {
-                $options['type'] = explode(',', $options['type']);
-            }
+            if (!is_array($options['type'])) $options['type'] = explode(',', $options['type']);
             $select_list = array();
             foreach ($options['type'] as $type) {
                 $type = trim($type);
@@ -179,13 +305,10 @@ Class blogModel Extends ZenModel
          * set order
          */
         if (!empty($options['order'])) {
-            if ($options['order'] == 'RAND') {
-                $options['order'] = array('RAND()' => '');
-            }
+            if ($options['order'] == 'RAND') $options['order'] = array('RAND()' => '');
             $order_by = array();
             foreach ($options['order'] as $key => $value) {
-                if ($value)
-                    $order_by[] = "`$key` $value";
+                if ($value) $order_by[] = "`$key` $value";
                 else $order_by[] = "$key";
             }
             $select_order = implode(', ', $order_by);
@@ -194,24 +317,28 @@ Class blogModel Extends ZenModel
         /**
          * set limit
          */
-        if (!empty($options['limit'])) {
-            $select_limit = 'LIMIT ' . $options['limit'];
-        }
+        if (!empty($options['limit'])) $select_limit = 'LIMIT ' . $options['limit'];
 
         $implode_where = implode(' AND ', $where_arr);
-        $_sql_count = "SELECT `id` FROM " . tb() . "blogs " . (!empty($implode_where)? 'WHERE ' . $implode_where:'') . " ORDER BY $select_order";
+
         /**
-         * get cache
+         * make sure get total is enable
          */
-        $cache_total = ZenCaching::get($_sql_count);
-        if ($cache_total != null) {
-            $this->total_result = $cache_total;
-        } else {
-            $this->total_result = $this->db->num_row($this->db->query($_sql_count));
+        if ($get_total) {
+            $_sql_count = "SELECT `id` FROM " . tb() . "blogs " . (!empty($implode_where)? 'WHERE ' . $implode_where:'') . " ORDER BY $select_order";
             /**
-             * set the new cache
+             * get cache
              */
-            ZenCaching::set($_sql_count, $this->total_result, 300);
+            $cache_total = ZenCaching::get($_sql_count . (!empty($options['pos_name']) ? '_' . $options['pos_name'] : ''));
+            if ($cache_total != null) {
+                $this->total_result = $cache_total;
+            } else {
+                $this->total_result = $this->db->num_row($this->db->query($_sql_count));
+                /**
+                 * set the new cache
+                 */
+                ZenCaching::set($_sql_count, $this->total_result, 300);
+            }
         }
 
         $_sql = "SELECT $get_what FROM " . tb() . "blogs " . (!empty($implode_where)? 'WHERE ' . $implode_where:'') . " ORDER BY $select_order $select_limit";
@@ -219,15 +346,14 @@ Class blogModel Extends ZenModel
         /**
          * get cache
          */
-        $cache_name = $_sql;
+        $cache_name = $_sql . (!empty($options['pos_name']) ? '_' . $options['pos_name'] : '');
         $cache = ZenCaching::get($cache_name);
-        if ($cache != null) {
-            return $cache;
-        }
+        if ($cache != null) return $cache;
+
         $query = $this->db->query($_sql);
         if ($this->db->num_row($query)) {
             while ($ro = $this->db->fetch_array($query)) {
-                $cats[$ro['id']] = $this->gdata($ro);
+                $cats[$ro['id']] = $this->gdata($ro, array('pos_name' => isset($options['pos_name']) ? $options['pos_name'] : null));
             }
             /**
              * set the new cache
@@ -251,6 +377,7 @@ Class blogModel Extends ZenModel
         $select_what = $this->explode_what_gets($what_gets);
         $select_limit = '';
         $select_where = '';
+        $order_by = array();
         foreach ($order as $key => $value) {
             if ($value) {
                 $order_by[] = "`$key` $value";
@@ -314,6 +441,9 @@ Class blogModel Extends ZenModel
         if (!in_array('id', $what_gets) && !in_array('`id`', $what_gets)) {
             $what_gets[] = 'id';
         }
+        if (!in_array('type_data', $what_gets) && !in_array('`type_data`', $what_gets)) {
+            $what_gets[] = 'type_data';
+        }
         if (!empty($check_add) && is_array($check_add)) {
             foreach ($check_add as $col) {
                 if (!in_array($col, $what_gets) && !in_array('`' . $col . '`', $what_gets)) {
@@ -326,11 +456,12 @@ Class blogModel Extends ZenModel
     }
 
     /**
-     *
+     * config output data for blog
      * @param array $data
-     * @return array
+     * @param array $options
+     * @return mixed
      */
-    public function gdata($data = array())
+    public function gdata($data = array(), $options = array('pos_name' => null))
     {
         global $registry;
         $hook = $registry->hook->get('blog');
@@ -350,13 +481,22 @@ Class blogModel Extends ZenModel
             if ($ro['type_data'] == 'html') {
                 $ro['content'] = h_decode($ro['content']);
             }
-            $ro['sub_content'] = subWords(removeTag($ro['content']), 10);
         }
         if (!empty($ro['time'])) {
             load_helper('time');
             $ro['display_time'] = m_timetostr($ro['time']);
         } else {
             $ro['display_time'] = 'N/A';
+        }
+        /**
+         * gdata hook*
+         */
+        $ro = $hook->loader('gdata', $ro);
+        if (!empty($options['pos_name'])) {
+            /**
+             * xxx_gdata hook*
+             */
+            $ro = $hook->loader($options['pos_name'] . '_gdata', $ro);//xxx_gdata hook*
         }
         return $ro;
     }
@@ -826,6 +966,7 @@ Class blogModel Extends ZenModel
         if (empty($data['type'])) $data['type'] = 'post';
         if (empty($data['type_data'])) $data['type_data'] = 'html';
         if (empty($data['time'])) $data['time'] = 0;
+        if (empty($data['time_update'])) $data['time_update'] = $data['time'];
         if (empty($data['weight'])) $data['weight'] = 0;
         $data_ins = $this->db->sqlQuote($data);
 
@@ -900,12 +1041,33 @@ Class blogModel Extends ZenModel
 
     /**
      * update view blog
-     *
      * @param $sid
      */
-    public function update_view($sid)
-    {
+    public function update_view($sid) {
         $this->db->query("UPDATE " . tb() . "blogs SET `view` = `view` + 1 where `id` = '$sid'");
+    }
+
+    /***
+     * @param $id   Blog id
+     * @param int $value
+     * @return mixed
+     */
+    public function set_attach($id, $value = 0) {
+        if (!in_array($value, array(0, 1))) return false;
+        return $this->db->query("UPDATE " . tb() . "blogs SET `attach` = '$value' where `id` = '$id'");
+    }
+
+    /**
+     * @param $id   Blog id
+     * @return bool
+     */
+    public function attach_available($id) {
+        $link_arr = $this->get_links($id);
+        $file_arr = $this->get_files($id);
+        if (!$link_arr && !$file_arr) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -934,11 +1096,11 @@ Class blogModel Extends ZenModel
     //-------------------------------------------------------------------------------
 
     /**
-     * remove blog to recycle bin
+     * remove blog to trash
      * @param $sid
      * @return bool
      */
-    public function remove_to_recycle_bin($sid)
+    public function remove_to_trash($sid)
     {
         /**
          * clean cache
@@ -954,7 +1116,29 @@ Class blogModel Extends ZenModel
                 return true;
             }
             while ($row2 = $this->db->fetch_array($query2)) {
-                $this->remove_to_recycle_bin($row2['id']);
+                $this->remove_to_trash($row2['id']);
+            }
+        }
+        return true;
+    }
+
+    public function remove_to_draft($sid)
+    {
+        /**
+         * clean cache
+         */
+        ZenCaching::clean();
+        $this->set_filter('status', array(0,1,2));
+        if (!$this->blog_exists($sid)) return false;
+        $row = $this->get_blog_data($sid, 'parent,type,id');
+        $this->db->query("UPDATE " . tb() . "blogs SET `status` = '1' where `id` = '$sid'");
+        if ($row['type'] == 'folder') {
+            $query2 = $this->db->query("SELECT `parent`, `type`, `id` FROM " . tb() . "blogs where `parent` = '" . $row['id'] . "'");
+            if (!$this->db->num_row($query2)) {
+                return true;
+            }
+            while ($row2 = $this->db->fetch_array($query2)) {
+                $this->remove_to_draft($row2['id']);
             }
         }
         return true;
@@ -1058,6 +1242,7 @@ Class blogModel Extends ZenModel
         $data = $this->link_data_standardized($data);
         $_sql = $this->db->_sql_insert(tb() . "blogs_links", $data);
         if ($this->db->query($_sql)) {
+            $this->set_attach($data['sid'], 1);
             /**
              * clean cache
              */
@@ -1105,12 +1290,16 @@ Class blogModel Extends ZenModel
      */
     public function delete_link($lid) {
         if (empty($lid)) return false;
+        $linkData = $this->get_link_data($lid);
         if ($this->db->query("DELETE FROM " . tb() . "blogs_links WHERE `id` = '$lid'")) {
             /**
              * clean cache
              */
             ZenCaching::clean('get_links');
             ZenCaching::clean('get_link_data');
+            if (!$this->attach_available($linkData['sid'])) {
+                $this->set_attach($linkData['sid'], 0);
+            }
             return true;
         }
         return false;
@@ -1118,10 +1307,17 @@ Class blogModel Extends ZenModel
 
     /**
      * @param $sid
+     * @return bool
      */
     public function delete_all_links($sid) {
-        $this->db->query("DELETE FROM " . tb() . "blogs_links WHERE `sid` = '$sid'");
-        ZenCaching::clean();
+        if ($this->db->query("DELETE FROM " . tb() . "blogs_links WHERE `sid` = '$sid'")) {
+            ZenCaching::clean();
+            if (!$this->attach_available($sid)) {
+                $this->set_attach($sid, 0);
+            }
+            return true;
+        }
+        return false;
     }
     //---------------------------------------------------
 
@@ -1152,9 +1348,11 @@ Class blogModel Extends ZenModel
         $path = __FILES_PATH . '/posts/files_upload';
         if (isset($data['url'])) {
             if (preg_match('/^https?:\/\//is', $data['url'])) {
+                $data['is_local_file'] = false;
                 $data['full_url'] = $data['url'];
                 $data['full_path'] = $data['url'];
             } else {
+                $data['is_local_file'] = true;
                 $data['full_url'] = $dir . '/' . $data['url'];
                 $data['full_path'] = $path . '/' . $data['url'];
             }
@@ -1219,7 +1417,6 @@ Class blogModel Extends ZenModel
     {
         if (isset($data['status'])) {
             $str = serialize($data['status']);
-            (string)$data['status'];
             $data['status'] = $str;
         }
         return $this->db->sqlQuote($data);
@@ -1234,6 +1431,7 @@ Class blogModel Extends ZenModel
         $data['time'] = time();
         $_sql = $this->db->_sql_insert(tb() . "blogs_files", $data);
         if ($this->db->query($_sql)) {
+            $this->set_attach($data['sid'], 1);
             /**
              * clean cache
              */
@@ -1262,20 +1460,32 @@ Class blogModel Extends ZenModel
         return false;
     }
 
-    public function delete_file($fid)
+    public function delete_db_file($fid)
     {
-        if (empty($fid)) {
-            return false;
-        }
+        $fileData = $this->get_file_data($fid);
         if ($this->db->query("DELETE FROM " . tb() . "blogs_files WHERE `id` = '$fid'")) {
             /**
              * clean cache
              */
             ZenCaching::clean('get_files');
             ZenCaching::clean('get_file_data');
+            if (!$this->attach_available($fileData['sid'])) {
+                $this->set_attach($fileData['sid'], 0);
+            }
             return true;
         }
         return false;
+    }
+
+    public function delete_file($fid) {
+        $file = $this->get_file_data($fid);
+        if ($file) {
+            if ($file['is_local_file']) {
+                if (file_exists($file['full_path'])) unlink($file['full_path']);
+            }
+            return $this->delete_db_file($file['id']);
+        }
+        return true;
     }
 
     public function delete_all_files($sid) {
@@ -1295,10 +1505,12 @@ Class blogModel Extends ZenModel
         $path = __FILES_PATH . '/posts/images';
         if (isset($data['url'])) {
             if (preg_match('/^https?:\/\//is', $data['url'])) {
+                $data['is_local_image'] = false;
                 $data['full_url'] = $data['url'];
                 $data['full_path'] = $data['url'];
                 $data['short_url'] = $data['url'];
             } else {
+                $data['is_local_image'] = true;
                 $data['full_url'] = $url . '/' . $data['url'];
                 $data['full_path'] = $path . '/' . $data['url'];
                 $data['short_url'] = $short . '/' . $data['url'];
@@ -1308,9 +1520,9 @@ Class blogModel Extends ZenModel
         return $data;
     }
 
-    public function get_images($sid, $type_get = '')
+    public function get_images($sid)
     {
-        $_sql = "SELECT * FROM " . tb() . "blogs_images where `sid`='$sid' and `type` = '$type_get' order by `id` ASC";
+        $_sql = "SELECT * FROM " . tb() . "blogs_images where `sid`='$sid' order by `id` DESC";
         /**
          * load cache
          */
@@ -1372,7 +1584,7 @@ Class blogModel Extends ZenModel
         return false;
     }
 
-    public function delete_image($imgid)
+    public function delete_db_image($imgid)
     {
         if (empty($imgid)) {
             return false;
@@ -1388,12 +1600,23 @@ Class blogModel Extends ZenModel
         return false;
     }
 
+    public function delete_image($imgID) {
+        $image = $this->get_image_data($imgID);
+        if ($image) {
+            if ($image['is_local_image']) {
+                @unlink($image['full_path']);
+            }
+            $this->delete_db_image($image['id']);
+        }
+    }
+
     public function delete_all_images($sid) {
-        $images = array_merge($this->get_images($sid), $this->get_images($sid, 'content'));
+        $images = $this->get_images($sid);
         foreach ($images as $img) {
             $this->delete_image($img['id']);
         }
     }
+
     //-----------------------------------------------------------
 
     public function count_blog($sid = 0) {
@@ -1595,7 +1818,6 @@ Class blogModel Extends ZenModel
     //------------------------------------------------
 
     public function delete($sid) {
-        $this->only_filter_recycle_bin();
         if (!$this->blog_exists($sid)) {
             return false;
         }
@@ -1635,6 +1857,9 @@ Class blogModel Extends ZenModel
          * delete complete
          */
         $this->db->query("DELETE FROM ".tb()."blogs WHERE `id` = '$sid'");
+        /**
+         * if blog is cat, move all post in this cat to draft
+         */
         if ($blog['type'] == 'folder') {
             $this->db->query("UPDATE ".tb()."blogs SET `status` = '1' WHERE `parent` = '$sid'");
         }

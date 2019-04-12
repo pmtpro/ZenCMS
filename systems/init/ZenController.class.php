@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -45,23 +45,27 @@ Abstract Class ZenController
      */
     function __construct($registry)
     {
+        $this->user = $registry->user;
+        $this->db = $registry->db;
+
         $this->model = &ZenModel::getInstance($registry);
         $registry->model = $this->model;
+
         $this->temp = &Zentemplate::getInstance($registry);
         $registry->temp = $this->temp;
+
         $this->view = &ZenView::getInstance($registry);
         $registry->view = $this->view;
+
         $this->config = &ZenConfig::getInstance($registry);
         $registry->config = $this->config;
+
         $this->hook = &ZenHook::getInstance($registry);
         $registry->hook = $this->hook;
+
         $this->settings = &ZenSettings::getInstance();
         $registry->settings = $this->settings;
-        $this->registry = $registry;
-        $this->user = $registry->user;
-    }
 
-    /**
-     * @all controllers must contain an index method
-     */
+        $this->registry = $registry;
+    }
 }

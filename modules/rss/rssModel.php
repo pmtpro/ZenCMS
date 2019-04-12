@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -53,7 +53,8 @@ Class rssModel Extends ZenModel
             }
         }
         if (isset($ro['content'])) {
-            $ro['sub_content'] = subWords(removeTag($ro['content']), 10);
+            $contentDisplay = h_decode($ro['content']);
+            $ro['sub_content'] = h(subWords(strip_tags($contentDisplay), 30));
         }
         return $ro;
     }

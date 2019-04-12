@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,44 +16,45 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 if (empty($_SESSION['process']['CheckSystem'])) {
-    redirect('install?do=CheckSystem');
+    redirect('/?do=CheckSystem');
     exit;
 }
 if (empty($_SESSION['process']['DatabaseInfo'])) {
-    redirect('install?do=DatabaseInfo');
+    redirect('/?do=DatabaseInfo');
     exit;
 }
 if (empty($_SESSION['process']['ImportDatabase'])) {
-    redirect('install?do=ImportDatabase');
+    redirect('/?do=ImportDatabase');
     exit;
 }
 if (defined('__ZEN_DB_HOST') && defined('__ZEN_DB_USER') && defined('__ZEN_DB_PASSWORD') && defined('__ZEN_DB_NAME')) {
     if (!__ZEN_DB_HOST || !__ZEN_DB_NAME) {
-        redirect('install?do=DatabaseInfo');
+        redirect('/?do=DatabaseInfo');
         exit;
     }
     if (!$db->connect(__ZEN_DB_HOST, __ZEN_DB_USER, __ZEN_DB_PASSWORD, __ZEN_DB_NAME, false)) {
-        redirect('install?do=DatabaseInfo');
+        redirect('/?do=DatabaseInfo');
         exit;
     }
 } else {
-    redirect('install?do=DatabaseInfo');
+    redirect('/?do=DatabaseInfo');
     exit;
 }
 
 $db->query("DELETE FROM `zen_cms_users`");
 $_SESSION['account_info']['username'] = '';
 $_SESSION['account_info']['password'] = '';
-$home = HOME;
+
+$home = REAL_HOME;
 $title = '';
 $keyword = '';
 $des = '';
@@ -134,7 +135,7 @@ define('ZEN_VERITY_ACCESS', '$verify');//$password_private";
                                     $_SESSION['account_info']['username'] = $username;
                                     $_SESSION['account_info']['password'] = $password;
                                     $_SESSION['account_info']['password2'] = $password_private;
-                                    redirect('install?do=Finished');
+                                    redirect('/?do=Finished');
                                     exit;
                                 }
                             }
@@ -147,77 +148,138 @@ define('ZEN_VERITY_ACCESS', '$verify');//$password_private";
 }
 ?>
 
-<div class="row" style="text-align: center;">
-    <div class="padded">
-        <h1 style="font-size: 30px">Bước 3: Cấu hình trang & tài khoản</h1>
+<div class="row">
+    <div class="col-md-12">
+        <h3 class="page-title">
+            Cài đặt ZenCMS <small>Bước 6</small>
+        </h3>
     </div>
 </div>
 
-<div class="login box" style="margin-top: 20px;">
-    <div class="box-header">
-        <span class="title">Thông tin</span>
-    </div>
-    <div class="box-content padded">
-        <?php load_message() ?>
-        <form class="separate-sections form-horizontal fill-up validatable" method="POST">
-            <div class="form-group">
-                <label class="control-label col-lg-4">Địa chỉ trang chủ</label>
-                <div class="col-lg-8"><input type="text" name="home" value="<?php echo $home ?>" placeholder="http://"/></div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet box red">
+            <div class="portlet-title"><div class="caption"><i class="fa fa-cogs"></i> Cấu hình trang & tài khoản</div></div>
+            <div class="portlet-body form">
+                <form class="form-horizontal" method="POST">
+                    <div class="form-wizard">
+                        <div class="form-body">
+                            <?php load_step(6) ?>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                    <?php load_message() ?>
+                                    <div class="row">
+                                        <h3 class="block col-lg-6 col-lg-offset-3">Cấu hình trang</h3>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Địa chỉ trang chủ</label>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">
+                                                    <i class="fa fa-link"></i>
+                                                </span>
+                                                <input type="text" name="home" value="<?php echo $home ?>" placeholder="http://" class="form-control"/>
+                                            </div>
+                                            <div class="help-block pull-right">Không có dấu / ở sau</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Tiêu đề trang</label>
+                                        <div class="col-lg-6">
+                                            <input type="text" name="title" value="<?php echo $title ?>" placeholder="Tiêu đề trang" class="form-control"/>
+                                            <div class="help-block pull-right">Có thể sửa sau</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Keyword</label>
+                                        <div class="col-lg-6">
+                                            <textarea name="keyword" placeholder="Keyword" class="form-control"><?php echo $keyword ?></textarea>
+                                            <div class="help-block pull-right">Có thể sửa sau</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Mô tả</label>
+                                        <div class="col-lg-6">
+                                            <textarea name="des" placeholder="Mô tả trang" class="form-control"><?php echo $des ?></textarea>
+                                            <div class="help-block pull-right">Có thể sửa sau</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <h3 class="block col-lg-6 col-lg-offset-3">Cấu hình tài khoản</h3>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Tên tài khoản</label>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">
+												    <i class="fa fa-user"></i>
+												</span>
+                                                <input type="text" name="username" value="<?php echo $username ?>" placeholder="Tài khoản" class="form-control"/>
+                                            </div>
+                                            <div class="help-block pull-right">Chỉ bao gồm: a-z, 0-9, và các kí tự -_</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Email</label>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">
+												    <i class="fa fa-envelope"></i>
+												</span>
+                                                <input type="text" name="email" value="<?php echo $email ?>" placeholder="Email" class="form-control"/>
+                                            </div>
+                                            <div class="help-block pull-right">Mail dùng để khôi phục tài khoản</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Mật khẩu</label>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">
+												    <i class="fa fa-key"></i>
+												</span>
+                                                <input type="password" name="password" placeholder="Mật khẩu" class="form-control"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Nhập lại mật khẩu</label>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">
+                                                    <i class="fa fa-key"></i>
+                                                </span>
+                                                <input type="password" name="repassword" placeholder="Nhập lại mật khẩu" class="form-control"/>
+                                            </div>
+                                            <div class="help-block pull-right">Mật khẩu để truy cập vào Admin CP</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-lg-3">Mật khẩu cấp 2</label>
+                                        <div class="col-lg-6">
+                                            <div class="input-group">
+                                                <span class="input-group-addon">
+                                                    <i class="fa fa-key"></i>
+                                                </span>
+                                                <input type="password" name="password_private" placeholder="Mật khẩu cấp 2" value="<?php echo $password_private ?>" class="form-control"/>
+                                            </div>
+                                            <div class="help-block pull-right">Mật khẩu dùng để truy cập các mục hệ thống</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <div class="row">
+                                <div class="col-lg-6 col-lg-offset-3">
+                                    <button name="submit-next" type="submit" class="btn btn-primary">Lưu và tiếp tục <span class="fa fa-arrow-right"></span></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Tiêu đề trang</label>
-                <div class="col-lg-8">
-                    <input type="text" name="title" value="<?php echo $title ?>" placeholder="Tiêu đề trang"/>
-                    <div class="note pull-right">Có thể sửa sau</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Keyword</label>
-                <div class="col-lg-8">
-                    <textarea name="keyword" placeholder="Keyword"><?php echo $keyword ?></textarea>
-                    <div class="note pull-right">Có thể sửa sau</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Mô tả</label>
-                <div class="col-lg-8">
-                    <textarea name="des" placeholder="Mô tả trang"><?php echo $des ?></textarea>
-                    <div class="note pull-right">Có thể sửa sau</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Tên tài khoản</label>
-                <div class="col-lg-8">
-                    <input type="text" name="username" value="<?php echo $username ?>" placeholder="Tài khoản"/>
-                    <div class="note pull-right">Chỉ bao gồm: a-z, 0-9, và các kí tự -_</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Email</label>
-                <div class="col-lg-8">
-                    <input type="text" name="email" value="<?php echo $email ?>" placeholder="Email"/>
-                    <div class="note pull-right">Mail dùng để khôi phục tài khoản</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Mật khẩu</label>
-                <div class="col-lg-8"><input type="password" name="password" placeholder="Mật khẩu"/></div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Nhập lại mật khẩu</label>
-                <div class="col-lg-8"><input type="password" name="repassword" placeholder="Nhập lại mật khẩu"/></div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4">Mật khẩu cấp 2</label>
-                <div class="col-lg-8">
-                    <input type="password" name="password_private" placeholder="Mật khẩu cấp 2" value="<?php echo $password_private ?>"/>
-                    <div class="note pull-right">Mật khẩu dùng để truy cập các mục hệ thống</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-4"></label>
-                <div class="col-lg-8"><button type="submit" name="submit-next" class="btn btn-blue">Tiếp tục <i class="icon-signin"></i></button></div>
-            </div>
-        </form>
+        </div>
     </div>
 </div>

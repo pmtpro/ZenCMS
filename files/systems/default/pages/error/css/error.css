@@ -1,0 +1,232 @@
+/***
+Error Pages
+***/
+/* 404 page option #1 */
+
+html {
+    height: 100%;
+}
+
+
+body {
+    color: black;
+    font-family: "Open Sans", sans-serif;
+    padding: 0px !important;
+    margin: 0px !important;
+    font-size: 13px;
+    direction: ltr;
+}
+div, input, select, textarea, span, img, table, label, td, th, p, a, button, ul, code, pre, li {
+    -webkit-border-radius: 0 !important;
+    -moz-border-radius: 0 !important;
+    border-radius: 0 !important;
+}
+a {
+    text-shadow: none;
+    color: #428bca;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Open Sans", sans-serif;
+    font-weight: 300;
+}
+h3 {
+    font-size: 23px;
+}
+.form-control {
+    font-size: 14px;
+    font-weight: normal;
+    color: #333333;
+    background-color: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+.btn {
+    border-width: 0;
+    padding: 7px 14px;
+    font-size: 14px;
+    outline: none !important;
+    background-image: none !important;
+    filter: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    text-shadow: none;
+}
+.btn-primary {
+    color: white;
+    background-color: #428bca;
+    border-color: #357ebd;
+}
+/** layout.css **/
+
+.page-header.navbar {
+    width: 100%;
+    padding: 0 20px 0 20px;
+    margin: 0;
+    border: 0px;
+    padding: 0px;
+    box-shadow: none;
+    height: 46px;
+    min-height: 46px;
+    filter: none;
+    background-color: #1f1f1f;
+}
+.page-header, .page-sidebar-wrapper, .page-content-wrapper, .page-footer {
+    transition: margin 0.3s;
+}
+.page-header.navbar .page-logo {
+    float: left;
+    display: block;
+    width: 235px;
+    height: 46px;
+    padding-left: 2px;
+    padding-right: 20px;
+}
+.page-header.navbar .page-logo .logo-default {
+    margin: 6px 0 0 0;
+    width: 33px;
+    line-height: 33px;
+}
+
+
+.page-404 {
+    text-align: center;
+}
+
+.page-404 .number {
+    position: relative;
+    top: 35px;
+    display: inline-block;
+    letter-spacing: -10px;
+    margin-top: 0px;
+    margin-bottom: 10px;
+    line-height: 128px;
+    font-size: 128px;
+    font-weight: 300;
+    color: #7bbbd6;
+    text-align: right;
+}
+
+.page-404 .details {
+    margin-left: 40px;
+    display: inline-block;
+    padding-top: 0px;
+    text-align: left;
+    max-width: 200px;
+}
+
+/* 500 page option #1 */
+.page-500 {
+    text-align: center;
+}
+
+.page-500 .number {
+    display: inline-block;
+    letter-spacing: -10px;
+    line-height: 128px;
+    font-size: 128px;
+    font-weight: 300;
+    color: #ec8c8c;
+    text-align: right;
+}
+
+.page-500 .details {
+    margin-left: 40px;
+    display: inline-block;
+    text-align: left;
+}
+
+/* 404 page option #2*/
+.page-404-full-page {
+    overflow-x: hidden;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #fafafa !important;
+    height: 100%;
+}
+
+.page-404-full-page .details input {
+    background-color: #ffffff;
+}
+
+.page-404-full-page .page-404 {
+}
+
+/* 500 page option #2*/
+.page-500-full-page {
+    overflow-x: hidden;
+    padding: 20px;
+    background-color: #fafafa !important;
+}
+
+.page-500-full-page .details input {
+    background-color: #ffffff;
+}
+
+.page-500-full-page .page-500 {
+    margin-top: 100px;
+}
+
+/* 404 page option #3*/
+.page-404-3 {
+    background: black !important;
+}
+
+.page-404-3 .page-inner img {
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    position: absolute;
+}
+
+.page-404-3 .error-404 {
+    color: #fff;
+    text-align: left;
+    padding: 70px 20px 0;
+}
+
+.page-404-3 h1 {
+    color: #fff;
+    font-size: 130px;
+    line-height: 160px;
+}
+
+.page-404-3 h2 {
+    color: #fff;
+    font-size: 30px;
+    margin-bottom: 30px;
+}
+
+.page-404-3 p {
+    color: #fff;
+    font-size: 16px;
+}
+
+@media (max-width: 480px) {
+    .page-404 .number,
+    .page-500 .number,
+    .page-404 .details,
+    .page-500 .details {
+        text-align: center;
+        margin-left: 0px;
+    }
+
+    .page-404-full-page .page-404 {
+    }
+
+    .page-404-3 .error-404 {
+        text-align: left;
+        padding-top: 10px;
+    }
+
+    .page-404-3 .page-inner img {
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+        position: fixed;
+    }
+}

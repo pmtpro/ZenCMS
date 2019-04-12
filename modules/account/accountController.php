@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -42,6 +42,7 @@ Class accountController Extends ZenController
         $model = $this->model->get('account');
         $new_msg = $model->count_new_message();
         ZenView::set_menu(array(
+            'name' => 'Tài khoản',
             'pos' => 'main',
             'menu' => array(
                 array(
@@ -115,9 +116,9 @@ Class accountController Extends ZenController
                 $update['sex'] = h($security->cleanXSS($_POST['sex']));
             }
 
-            if ($_POST['birth-day']>=$data['birth_config']['day']['start'] && $_POST['birth-day']<=$data['birth_config']['day']['end']
-            && $_POST['birth-month']>=$data['birth_config']['month']['start'] && $_POST['birth-month']<=$data['birth_config']['month']['end']
-            && $_POST['birth-year']>=$data['birth_config']['year']['start'] && $_POST['birth-month']<=$data['birth_config']['year']['end']) {
+            if ($_POST['birth-day'] >= $data['birth_config']['day']['start'] && $_POST['birth-day'] <= $data['birth_config']['day']['end']
+            && $_POST['birth-month'] >= $data['birth_config']['month']['start'] && $_POST['birth-month'] <= $data['birth_config']['month']['end']
+            && $_POST['birth-year'] >= $data['birth_config']['year']['start'] && $_POST['birth-month'] <= $data['birth_config']['year']['end']) {
                 $update['birth'] = strtotime($_POST['birth-month'] . '/' . $_POST['birth-day'] . '/' . $_POST['birth-year']);
             } else {
                 ZenView::set_error('Không đúng định dạnh ngày sinh', 'birth');
@@ -300,7 +301,7 @@ Class accountController Extends ZenController
                 /**
                  * paging list comment
                  */
-                $limit = 15;
+                $limit = 10;
                 $paging->setLimit($limit);
                 $paging->SetGetPage('page');
                 $start = $paging->getStart();
@@ -321,7 +322,7 @@ Class accountController Extends ZenController
                 /**
                  * run user_detail_box_after_name hook*
                  */
-                run_hook('account', 'user_detail_box_after_name', function($data, $stream) {
+                run_hook('account', 'user_detail_box_after_name', function($data, $stream = array()) {
                     if ($stream['user']['id'] != $stream['wall']['id']) {
                         $data .= '<a href="' . HOME . '/account/messages/conversation/' . $stream['wall']['username'] . '" title="Gủi tin nhắn" class="label label-success">PM</a>';
                     }
@@ -400,10 +401,10 @@ Class accountController Extends ZenController
                                 ZenView::set_notice('Có lỗi, vui lòng thử lại');
                             } else {
                                 $data_user = $model->get_user_data($username);
-                                $ok = $this->hook->loader('send_mail_forgot_password', $data_user);
+                                $ok = $hook->loader('send_mail_forgot_password', $data_user);
                                 if ($ok) {
                                     ZenView::set_success('Hệ thống đã gửi thư đến email được đăng kí trên tài khoản <b>' . $data_user['nickname'] . '</b>. <br/>
-                    Vui lòng check mail và làm theo hướng dẫn để lấy lại mật khẩu');
+                                    Vui lòng kiểm tra mail và làm theo hướng dẫn để lấy lại mật khẩu');
                                 } else {
                                     ZenView::set_error('Không thể gửi mail lấy lại mật khẩu<br/>' . get_global_msg('send_mail'));
                                 }
@@ -414,13 +415,13 @@ Class accountController Extends ZenController
 
                 ZenView::set_title('Quên mật khẩu');
                 $this->view->data = $data;
-                $this->view->show('account/forgot_password');
+                $this->view->show('account/forgot_password/index');
                 break;
 
             case 'reset_password':
-                $data['page_title'] = 'Khôi phục mật khẩu';
                 if (!empty($this->user)) {
-                    $data['notices'][] = 'Trước tiên bạn hãy <b><a href="' . HOME . '/logout" target="_blank">thoát</a></b> tài khoản hiện tại. Sau đó thực hiện lại';
+                    ZenView::set_notice('Trước tiên bạn hãy thoát tài khoản hiện tại. Sau đó thực hiện lại', ZPUBLIC, HOME . '/logout');
+                    exit;
                 }
                 if (empty($uid)) {
                     redirect(HOME);
@@ -430,46 +431,31 @@ Class accountController Extends ZenController
                 $data['user'] = $user;
 
                 if (!$user) {
-                    $data['errors'][] = 'Lỗi dữ liệu';
+                    ZenView::set_error('Lỗi dữ liệu');
                 } else {
-
                     if (!still_valid_security_code($uid, 'forgot_password') || $user['security_code']['forgot_password']['code'] != $code) {
-
-                        $data['errors'][] = 'Lỗi dữ liệu';
-
+                        ZenView::set_error('Lỗi dữ liệu');
                     } else {
-
                         if (isset($_POST['sub_reset_password'])) {
-
                             if ($security->check_token('token_continous')) {
-
                                 $new_password = randStr(8);
-
                                 $encode_pass = md5(md5($new_password));
-
                                 $new_security_forgot_password = md5(rand());
-
                                 $update['password'] = $encode_pass;
-
                                 if (set_security_code($uid, 'forgot_password', $new_security_forgot_password, '2d')) {
-
                                     if (!$model->update_user($uid, $update)) {
-
-                                        $data['errors'] = 'Đã xảy ra lỗi';
-
+                                        ZenView::set_error('Đã xảy ra lỗi');
                                     } else {
-
                                         $data['new_password'] = $new_password;
-                                        $data['success'] = 'Thành công';
-
+                                        ZenView::set_success(1);
                                     }
                                 }
                             }
                         }
                     }
-
                 }
 
+                ZenView::set_title('Khôi phục mật khẩu');
                 $data['token_continous'] = $security->get_token('token_continous');
                 $this->view->data = $data;
                 $this->view->show('account/forgot_password/reset_password');
@@ -536,6 +522,17 @@ Class accountController Extends ZenController
     }
 
     function messages($app = array('index')) {
+        ZenView::set_menu(array(
+            'pos' => 'page',
+            'name' => 'Tin nhắn',
+            'menu' => array(
+                array(
+                    'full_url' => HOME . '/account/messages/conversation',
+                    'icon' =>  'fa fa-plus',
+                    'name' => 'Cuộc trò chuyện mới'
+                )
+            )
+        ));
         load_apps('account/apps/messages', $app);
     }
 
@@ -544,7 +541,7 @@ Class accountController Extends ZenController
          * set sub menu
          */
         ZenView::set_menu(array(
-            'pos' => 'app',
+            'pos' => 'page',
             'name' => 'Cài đặt tài khoản',
             'menu' => get_apps('account/apps/settings', 'account/settings', true)
         ));

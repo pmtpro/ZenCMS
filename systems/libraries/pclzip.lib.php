@@ -646,6 +646,16 @@ class PclZip
     // --------------------------------------------------------------------------------
     function listContent()
     {
+        /**
+         * This feature mod by Zen Thắng
+         */
+        static $_static_functions;
+        if (isset($_static_function['listContent'][$this->zipname])) {
+            return $_static_function['listContent'][$this->zipname];
+        }
+        /**
+         * end mod
+         */
         $v_result = 1;
 
         // ----- Reset the error handler
@@ -663,6 +673,13 @@ class PclZip
             return (0);
         }
 
+        /**
+         * This feature mod by Zen Thắng
+         */
+        $_static_function['listContent'][$this->zipname] = $p_list;
+        /**
+         * end mod
+         */
         // ----- Return
         return $p_list;
     }

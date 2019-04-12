@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,13 +16,15 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
+
+$accModel = $obj->model->get('account');
 
 if (isset($_POST['submit-settings'])) {
     if (!empty($_POST['register_turn_off'])) {
@@ -34,8 +36,52 @@ if (isset($_POST['submit-settings'])) {
     } else $update['register_turn_on_authorized_email'] = 0;
 
     if (!empty($_POST['register_message'])) {
-        $update['register_message'] = h($_POST['register_message']);
-    } else $update['register_message'] = 'Đây không phải thời gian đăng kí tài khoản';
+        $update['register_message'] = array(
+            'data'          => h($_POST['register_message']),
+            'func_export'   => 'h_decode',
+            'func_import'   => 'h'
+        );
+    } else $update['register_message'] = array(
+        'data'          => 'Đây không phải thời gian đăng kí tài khoản',
+        'func_export'   => 'h_decode',
+        'func_import'   => 'h'
+    );
+
+    if (!empty($_POST['msg_register_success'])) {
+        $update['msg_register_success'] = array(
+            'data'          => h($_POST['msg_register_success']),
+            'func_export'   => 'h_decode',
+            'func_import'   => 'h'
+        );
+    } else $update['msg_register_success'] = array(
+        'data'          => h($accModel->defaultConfig['msg_register_success']),
+        'func_export'   => 'h_decode',
+        'func_import'   => 'h'
+    );
+
+    if (!empty($_POST['msg_register_success_send_success'])) {
+        $update['msg_register_success_send_success'] = array(
+            'data'          => h($_POST['msg_register_success_send_success']),
+            'func_export'   => 'h_decode',
+            'func_import'   => 'h'
+        );
+    } else $update['msg_register_success_send_success'] = array(
+        'data'          => h($accModel->defaultConfig['msg_register_success_send_success']),
+        'func_export'   => 'h_decode',
+        'func_import'   => 'h'
+    );
+
+    if (!empty($_POST['msg_register_success_send_fail'])) {
+        $update['msg_register_success_send_fail'] = array(
+            'data'          => h($_POST['msg_register_success_send_fail']),
+            'func_export'   => 'h_decode',
+            'func_import'   => 'h'
+        );
+    } else $update['msg_register_success_send_fail'] = array(
+        'data'          => h($accModel->defaultConfig['msg_register_success_send_fail']),
+        'func_export'   => 'h_decode',
+        'func_import'   => 'h'
+    );
 
     if ($obj->config->updateModuleConfig('register', $update)) {
         ZenView::set_success(1);

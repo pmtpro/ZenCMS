@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -34,36 +34,54 @@ if (file_exists($license_file)) {
 $license = nl2br($license);
 if (isset($_POST['submit-agree'])) {
     $_SESSION['agree'] = true;
-    redirect('install?do=CheckSystem');
+    redirect('/?do=CheckSystem');
 } elseif (isset($_POST['submit-not-agree'])) {
     $data['notices'] = 'Để tiếp tục, bạn phải đồng ý với điều khoản của ZenCMS';
 }
 ?>
-<div class="row" style="text-align: center;">
-    <div class="padded">
-        <h1 style="font-size: 30px">Cài đặt ZenCMS</h1>
+<style>
+    .license {
+        overflow-y: scroll;
+        height: 300px;
+        padding: 15px;
+        border: 1px solid #ddd;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3 class="page-title">
+            Cài đặt ZenCMS <small>Bước 1</small>
+        </h3>
     </div>
 </div>
 
-<div class="login box" style="margin-top: 20px;">
-    <div class="box-header">
-        <span class="title">Điều khoản sử dụng</span>
-    </div>
-    <div class="box-content padded">
-        <?php load_message() ?>
-        <div class="detail_content">
-            <blockquote class="license"><?php echo  $license ?></blockquote>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet box red">
+            <div class="portlet-title"><div class="caption"><i class="fa fa-legal"></i> Điều khoản sử dụng</div></div>
+            <div class="portlet-body form">
+                <form class="form-horizontal" method="POST">
+                    <div class="form-wizard">
+                        <div class="form-body">
+                            <?php load_step(1) ?>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                    <h3 class="block">Điều khoản sử dụng</h3>
+                                    <?php load_message() ?>
+                                    <div class="license">
+                                        <?php echo  $license ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button name="submit-not-agree" type="submit" class="btn btn-default pull-left">Không đồng ý</button>
+                            <button name="submit-agree" type="submit" class="btn btn-primary pull-right">Tôi đồng ý và tiếp tục <span class="fa fa-arrow-right"></span></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
-
-<form method="POST" class="separate-sections fill-up">
-    <div class="row">
-        <div class="col-md-6 col-xs-6">
-            <button name="submit-not-agree" type="submit" class="btn btn-default fill-up">Không đồng ý</button>
-        </div>
-        <div class="col-md-6 col-xs-6">
-            <button name="submit-agree" type="submit" class="btn btn-blue pull-right">Tôi đồng ý và tiếp tục <i class="icon-signin"></i></button>
-        </div>
-    </div>
-</form>

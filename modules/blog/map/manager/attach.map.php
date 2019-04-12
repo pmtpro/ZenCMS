@@ -1,27 +1,4 @@
 <?php
-/**
- * ZenCMS Software
- * Copyright 2012-2014 ZenThang
- * All Rights Reserved.
- *
- * This file is part of ZenCMS.
- * ZenCMS is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
- *
- * ZenCMS is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License
- * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @package ZenCMS
- * @copyright 2012-2014 ZenThang
- * @author ZenThang
- * @email thangangle@yahoo.com
- * @link http://zencms.vn/ ZenCMS
- * @license http://www.gnu.org/licenses/ or read more license.txt
- */
 ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blog']['name']: 'Không tiêu đề'), function() {
     ZenView::display_breadcrumb();
     ZenView::display_message();
@@ -37,11 +14,14 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                     </div>';
                         echo '<div class="form-group">
                     <label>Đường dẫn link</label>
-                    <input type="text" name="link" class="form-control" placeholder="http://" value="' . ZenView::$D['link']['link'] . '"/>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-link"></i></span>
+                        <input type="text" name="link" class="form-control" placeholder="http://" value="' . ZenView::$D['link']['link'] . '"/>
+                    </div>
                     </div>';
-                    echo '<input type="submit" name="submit-link" value="Lưu thay đổi" class="btn btn-blue"/>';
+                    echo '<input type="submit" name="submit-link" value="Lưu thay đổi" class="btn btn-primary"/>';
                     if (!empty(ZenView::$D['link_editor_id'])) {
-                        echo ' <input type="submit" name="submit-del-link" value="Xóa" class="btn btn-red" ' . cfm('Bạn có chắc chắn muốn xóa link này?') . '/>';
+                        echo ' <input type="submit" name="submit-del-link" value="Xóa" class="btn btn-danger" ' . cfm('Bạn có chắc chắn muốn xóa link này?') . '/>';
                         echo '<input type="hidden" name="link_editor_id" value="' . ZenView::$D['link_editor_id'] . '"/>';
                     }
                     echo '</form>';
@@ -56,7 +36,7 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                     });
                 }
                 if (!empty(ZenView::$D['links'])) {
-                echo '<table class="table table-normal">';
+                echo '<div class="table-responsive"><table class="table table-bordered">';
                 echo '<thead><tr>
                         <td style="width: 40px"></td>
                         <td>Tên</td>
@@ -65,7 +45,7 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                 foreach (ZenView::$D['links'] as $link) {
                     echo '<tr>
                         <td><div class="btn-group">
-                            <button class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i></button>
+                            <button class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i></button>
                             <ul class="dropdown-menu">
                               <li><a href="' . ZenView::$D['current_url'] . '&editLink=' . $link['id'] . '">Chỉnh sửa</a></li>
                               <li><a href="' . $link['real_link'] . '" target="_blank">Xem link</a></li>
@@ -75,7 +55,7 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                         <td>' . $link['real_link'] . '</td>
                         </tr>';
                 }
-                echo '</table>';
+                echo '</table></div>';
                 }
             });
         });
@@ -86,21 +66,31 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                 ZenView::padded(function() {
                     ZenView::display_message('file-editor');
                     if (!empty(ZenView::$D['file_editor_id'])) {
-                        echo '<form method="POST">';
+                        echo '<form method="POST" class="form-horizontal">';
                         echo '<div class="form-group">
-                        <label>Tên hiển thị file</label>
-                        <input type="text" name="name" class="form-control" placeholder="Tên hiển thị file" value="' . ZenView::$D['file']['name'] . '"/>
+                        <label class="col-sm-4 control-label">Tên hiển thị file</label>
+                        <div class="col-sm-8">
+                            <input type="text" name="name" class="form-control" placeholder="Tên hiển thị file" value="' . ZenView::$D['file']['name'] . '"/>
+                        </div>
                         </div>';
                         echo '<div class="form-group">
-                        <label>Tên file</label>
-                        <input type="text" name="file_name" class="form-control" value="' . ZenView::$D['file']['file_name'] . '"/>
+                        <label class="col-sm-4 control-label">Tên file</label>
+                        <div class="col-sm-8">
+                            <input type="text" name="file_name" class="form-control" value="' . ZenView::$D['file']['file_name'] . '"/>
+                        </div>
                         </div>';
-                        echo '<input type="submit" name="submit-file" value="Lưu thay đổi" class="btn btn-blue"/>';
-                        echo ' <input type="submit" name="submit-del-file" value="Xóa" class="btn btn-red" ' . cfm('Bạn có chắc chắn muốn xóa file này?') . '/>';
+                        echo '<div class="form-group">
+                        <label class="col-sm-4 control-label"></label>
+                        <div class="col-sm-8">
+                            <input type="submit" name="submit-file" value="Lưu thay đổi" class="btn btn-primary"/>
+                            <input type="submit" name="submit-del-file" value="Xóa" class="btn btn-danger" ' . cfm('Bạn có chắc chắn muốn xóa file này?') . '/>
+                        </div>
+                        </div>';
                         echo '</form>';
-                        ZenView::padded();
                     }
-                    echo '<form method="POST" enctype="multipart/form-data" class="form-horizontal fill-up validatable">';
+                });
+                ZenView::padded(function() {
+                    echo '<form method="POST" enctype="multipart/form-data" class="form-horizontal">';
                     for ($i=0; $i<ZenView::$D['number_file_per_upload']; $i++) {
                         $num = $i+1;
                         echo '<div class="form-group">
@@ -125,7 +115,7 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                     echo '<div class="form-group">
                         <label class="col-sm-4 control-label"></label>
                         <div class="col-sm-8">
-                            <input type="submit" name="submit-upload" value="Upload" class="btn btn-blue"/>
+                            <input type="submit" name="submit-upload" value="Upload" class="btn btn-primary"/>
                         </div>
                         </div>';
                     echo '</form>';
@@ -140,7 +130,7 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                     });
                 }
                 if (!empty(ZenView::$D['files'])) {
-                    echo '<table class="table table-normal">';
+                    echo '<div class="table-responsive"><table class="table table-bordered">';
                     echo '<thead><tr>
                         <td style="width: 40px"></td>
                         <td>Tên</td>
@@ -150,7 +140,7 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                     foreach (ZenView::$D['files'] as $file) {
                         echo '<tr>
                         <td><div class="btn-group">
-                            <button class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i></button>
+                            <button class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i></button>
                             <ul class="dropdown-menu">
                               <li><a href="' . ZenView::$D['current_url'] . '&editFile=' . $file['id'] . '">Chỉnh sửa</a></li>
                               <li><a href="' . $file['full_url'] . '" target="_blank">Xem file</a></li>
@@ -161,11 +151,11 @@ ZenView::section('Đính kèm: ' . (ZenView::$D['blog']['name']?ZenView::$D['blo
                         <td>' . size2text($file['size']) . '</td>
                         </tr>';
                     }
-                    echo '</table>';
+                    echo '</table></div>';
                 }
             });
         });
     });
 }, array('after' => '<div class="pull-right sparkline-box">
-<div class="btn-group"><a href="' . ZenView::$D['base_url'] . '/editor&id=' . ZenView::$D['blog']['id'] . '" class="btn btn-default"><i class="icon-arrow-left"></i></a></div>
+<div class="btn-group"><a href="' . ZenView::$D['base_url'] . '/editor&id=' . ZenView::$D['blog']['id'] . '" class="btn btn-default"><i class="fa fa-arrow-left"></i></a></div>
 </div>'));

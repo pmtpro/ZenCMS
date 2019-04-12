@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -32,6 +32,27 @@ Class accountModel Extends ZenModel
     public $msg_total_result;
     public $table = 'users';
     public $total_result;
+
+    public $defaultConfig = array(
+        'msg_register_success_send_fail'         => 'Không thể gửi mail kích hoạt.',
+        'msg_register_success_send_success'      => 'Chúc mừng bạn đã đăng kí thành công!<br/>Chúng tôi đã gửi mail xác nhận đến <b>{$reg_username}</b> để kích hoạt tài khoản!<br/>Vui lòng check mail và làm theo hướng dẫn!<br/>Nếu không nhận được mail kích hoạt. Bạn nên kiểm tra là hòm thư rác hoặc vui lòng đăng nhập và thực hiện gửi lại mail kích hoạt',
+        'msg_register_success'  => 'Đăng kí thành công! Hãy đăng nhập và tham gia cùng chúng tôi'
+    );
+
+    function send_mail_register($userData)
+    {
+        return send_mail($userData['email'], 'Kích hoạt tài khoản', 'Cảm ơn bạn đã đăng kí tài khoản <b>' . $userData['nickname'] . '</b> trên <a href="' . HOME . '">' . HOME . '</a>.<br/>
+        Vui lòng click link sau để kích hoạt! <br/>
+        <a href="' . HOME . '/account/active_account/' . $userData['id'] . '/' . $userData['security_code']['register']['code'] . '">' . HOME . '/account/active_account/' . $userData['id'] . '/' . $userData['security_code']['register']['code'] . '</a>');
+    }
+    /**
+     * encrypt password for account
+     * @param $password
+     * @return string
+     */
+    public function encrypt_password($password) {
+        return md5(md5($password));
+    }
 
     /**
      * account table
@@ -91,6 +112,23 @@ Class accountModel Extends ZenModel
     }
 
     /**
+     * insert new user
+     * @param $data
+     * @return bool
+     */
+    public function insert_user($data) {
+        $data = $this->db->sqlQuote($data);
+        $data['time_reg'] = time();
+        $sql = $this->db->_sql_insert(tb() . "users", $data);
+        $insert = $this->db->query($sql);
+        if ($insert) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+    /**
      * Get user setting
      * if empty $key, this method will return list user set from table zen_cms_users_set
      * @param $uid
@@ -138,6 +176,15 @@ Class accountModel Extends ZenModel
             $pos_where = 'id';
         } else $pos_where = 'username';
         $_sql = "SELECT `id` FROM ".$this->table(). " WHERE `$pos_where`='$user'";
+        $query = $this->db->query($_sql);
+        if ($this->db->num_row($query)) {
+            return true;
+        }
+        return false;
+    }
+
+    public function email_is_exists($email) {
+        $_sql = "SELECT `id` FROM ".$this->table(). " WHERE `email`='$email'";
         $query = $this->db->query($_sql);
         if ($this->db->num_row($query)) {
             return true;
@@ -504,6 +551,9 @@ Class accountModel Extends ZenModel
         $query = $this->db->query($sql);
         while ($row = $this->db->fetch_array($query)) {
             $row = $this->gdata($this->db->sqlQuoteRm($row));
+            /**
+             * message_before_display hook*
+             */
             $row['display_msg'] = $hook->loader('message_before_display', $row['msg']);
             $row['display_time'] = m_timetostr($row['time']);
             $out[] = $row;
@@ -608,5 +658,14 @@ Class accountModel Extends ZenModel
      */
     public function insert_id() {
         return $this->db->insert_id();
+    }
+
+    public function count_users($filter = null) {
+        if ($filter) {
+            $clouse_where = " WHERE `perm`='$filter'";
+        } else $clouse_where = '';
+        $sql = "SELECT `id` FROM " . tb() . "users" . $clouse_where;
+        $query = $this->db->query($sql);
+        return $this->db->num_row($query);
     }
 }

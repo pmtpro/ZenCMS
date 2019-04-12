@@ -1,30 +1,77 @@
-<div class="row" style="text-align: center;">
-    <div class="padded">
-        <h1 style="font-size: 30px">Lựa chọn cài đặt</h1>
+<div class="row">
+    <div class="col-md-12">
+        <h3 class="page-title">
+            Cài đặt ZenCMS <small>Bước 3</small>
+        </h3>
     </div>
 </div>
 
-<div class="login box" style="margin-top: 20px;">
-    <div class="box-header">
-        <span class="title">Chọn cài đặt</span>
-    </div>
-    <div class="box-content padded">
-        <?php load_message() ?>
-        <div class="action-nav-normal action-nav-line">
-            <div class="row action-nav-row">
-                <div class="col-sm-6 action-nav-button">
-                    <a href="<?php echo HOME ?>/install?do=DatabaseInfo" title="Cài đặt mới">
-                        <i class="icon-folder-open-alt"></i>
-                        <span>Cài đặt mới</span>
-                    </a>
-                    <span class="triangle-button red"><i class="icon-plus"></i></span>
-                </div>
-                <div class="col-sm-6 action-nav-button">
-                    <a href="<?php echo HOME ?>/install?do=DatabaseInfo&next=UpgradeDatabase" title="Nâng cấp lên phiên bản mới">
-                        <i class="icon-upload"></i>
-                        <span>Nâng cấp</span>
-                    </a>
-                </div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet box red">
+            <div class="portlet-title"><div class="caption"><i class="fa fa-check"></i> Lựa chọn cài đặt</div></div>
+            <div class="portlet-body form">
+                <form class="form-horizontal" method="POST">
+                    <div class="form-wizard">
+                        <div class="form-body">
+                            <?php load_step(3) ?>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                    <h3 class="block text-center">Lựa chọn cài đặt</h3>
+                                    <?php load_message() ?>
+
+                                    <div class="row">
+                                        <div class="col-lg-3"></div>
+                                        <div class="col-lg-6">
+                                            <div class="row">
+                                                <div class="col-lg-6 col-sm-6 col-xs-12">
+                                                    <a class="dashboard-stat blue-madison" href="<?php echo HOME ?>/?do=DatabaseInfo">
+                                                        <div class="visual">
+                                                            <i class="fa fa-flash"></i>
+                                                        </div>
+                                                        <div class="details">
+                                                            <div class="number">
+                                                                <?php echo ZENCMS_VERSION ?>
+                                                            </div>
+                                                            <div class="desc">
+                                                                Cài mới ZenCMS
+                                                            </div>
+                                                        </div>
+                                                        <span class="more">
+                                                            Cài đặt mới <i class="m-icon-swapright m-icon-white"></i>
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                                <div class="col-lg-6 col-sm-6 col-xs-12">
+                                                    <a class="dashboard-stat red-intense" href="<?php echo HOME ?>/?do=DatabaseInfo&next=UpgradeDatabase">
+                                                        <div class="visual">
+                                                            <i class="fa fa-level-up"></i>
+                                                        </div>
+                                                        <div class="details">
+                                                            <div class="number">
+                                                                <?php echo ZENCMS_VERSION ?>
+                                                            </div>
+                                                            <div class="desc">
+                                                                Nâng cấp lên <?php echo ZENCMS_VERSION ?>
+                                                            </div>
+                                                        </div>
+                                                        <span class="more">
+                                                            Nâng cấp <i class="m-icon-swapright m-icon-white"></i>
+                                                        </span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <a href="<?php echo HOME ?>?do=CheckSystem" class="btn btn-default pull-left"><span class="fa fa-arrow-left"></span> Trở lại</a>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

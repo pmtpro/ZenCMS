@@ -1,0 +1,8 @@
+sitemap/
+sitemap/sitemap.info
+sitemap/sitemapController.php
+sitemap/sitemapModel.php
+sitemap/sitemapSettings.php
+sitemap/tpl/
+sitemap/tpl/sitemap.xsl
+sitemap/tpl/xml.tpl.php

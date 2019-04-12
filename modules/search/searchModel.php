@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -57,50 +57,37 @@ Class searchModel Extends ZenModel
     }
 
     function keyword_like_tag($tag, $limit = 10) {
-
         $out = array();
-
         $select_limit = '';
-
         if (!empty($limit)) {
-
             $select_limit = 'limit '.$limit;
         }
         $sql = "SELECT * FROM ".tb()."tags WHERE `tag` != '$tag' and `tag` LIKE '%$tag%' $select_limit";
-
         $query = $this->db->query($sql);
-
         while($row = $this->db->fetch_array($query)) {
-
             $out[] = $this->db->sqlQuoteRm($row['tag']);
         }
         return $out;
     }
 
     function count_blog_like_tag($data) {
-
         $sql = "SELECT `id` FROM ".tb()."blogs WHERE `type`='post'  and
 								(`name` LIKE '%".$data['name']."%'
 								or `content` LIKE '%".$data['content']."%'
 								or `title` LIKE '%".$data['title']."%'
 								or `url` LIKE '%".$data['url']."%')";
-
         $query = $this->db->query($sql);
-
         return $this->db->num_row($query);
     }
 
     function result_blog_like_tag($data, $limit = '') {
-
+        global $registry;
+        $model = $registry->model->get('blog');
         $select_limit = '';
         $out = array();
-
         if (!empty($limit)) {
-
             $select_limit = 'limit '.$limit;
         }
-
-
         $sql = "SELECT * FROM ".tb()."blogs WHERE `type`='post'  and
 								(`name` LIKE '%".$data['name']."%'
 								or `content` LIKE '%".$data['content']."%'
@@ -108,46 +95,9 @@ Class searchModel Extends ZenModel
 								or `url` LIKE '%".$data['url']."%') $select_limit";
 
         $query = $this->db->query($sql);
-
         while ($row = $this->db->fetch_array($query)) {
-
-            $out[] = $this->gdata($row);
+            $out[] = $model->gdata($row);
         }
         return $out;
-    }
-
-    /**
-     *
-     * @param array $data
-     * @return array
-     */
-    public function gdata($data = array())
-    {
-
-        $ro = $this->db->sqlQuoteRm($data);
-
-        if (isset($ro['url'])) {
-
-            $ro['full_url'] = HOME . '/' . $ro['url'] . '-' . $ro['id'] . '.html';
-
-        }
-        if (isset($ro['icon'])) {
-
-            if (empty($ro['icon'])) {
-
-                $ro['full_icon'] = _BASE_TEMPLATE . '/images/' . tplConfig('default_icon');
-
-            } else {
-
-                $ro['full_icon'] = HOME . '/files/posts/images/' . $ro['icon'];
-            }
-        }
-
-        if (isset($ro['content'])) {
-
-            $ro['sub_content'] = subWords(removeTag($ro['content']), 10);
-        }
-
-        return $ro;
     }
 }

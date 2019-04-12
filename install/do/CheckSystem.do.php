@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -36,6 +36,29 @@ function check_php_version() {
         return true;
     } else return false;
 }
+function config_htaccess() {
+    $workDir = workDir();
+    $htaccess_line = array();
+    $default_htaccess = __SITE_PATH . '/files/systems/default/.htaccess.default';
+    $htaccess_path = __SITE_PATH . '/.htaccess';
+    if (!file_exists($htaccess_path)) file_put_contents($htaccess_path, '');
+    if (file_exists($default_htaccess) && is_readable($default_htaccess) && is_writeable($htaccess_path)) {
+        $handle = fopen($default_htaccess, "r");
+        if ($handle) {
+            while (($buffer = fgets($handle, 4096)) !== false) {
+                if (preg_match('/^RewriteBase/i', $buffer)) {
+                    $buffer = 'RewriteBase ' . (!$workDir ? '/' : '/' . $workDir . '/') . "\n";
+                }
+                $htaccess_line[] = $buffer;
+            }
+            fclose($handle);
+        }
+        $content = implode($htaccess_line, "");
+        if (trim($content)) {
+            return file_put_contents($htaccess_path, $content);
+        } else return false;
+    } else return false;
+}
 $list_check = array(
     'php_version' => array(
         'name' => 'PHP 5.3',
@@ -46,63 +69,75 @@ $list_check = array(
         'name' => 'Hỗ trợ GD library',
         'desc' => 'Để ZenCMS hoạt động tốt, hosting phải hỗ trợ GD library',
         'function' => 'gd_exists'
+    ),
+    'rewrite_base' => array(
+        'name' => 'Hoạt động trên thư mục con',
+        'desc' => 'ZenCMS chạy trên mọi vị trí thư mục',
+        'function' => 'config_htaccess'
     )
 );
 
 if (isset($_POST['next'])) {
     if ($_SESSION['checking_system_ok']) {
         $_SESSION['process']['CheckSystem'] = true;
-        redirect('install?do=InstallOption');
+        redirect('/?do=InstallOption');
         exit;
     }
 }
 if (isset($_POST['back'])) {
     $_SESSION['checking_system_ok'] = false;
-    redirect('install?do=GettingStarted');
+    redirect('/?do=GettingStarted');
     exit;
 }
 
 $_SESSION['checking_system_ok'] = true;
 ?>
-<div class="row" style="text-align: center;">
-    <div class="padded">
-        <h1 style="font-size: 30px">Kiểm tra hệ thống</h1>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3 class="page-title">
+            Cài đặt ZenCMS <small>Bước 2</small>
+        </h3>
     </div>
 </div>
 
-<div class="login box" style="margin-top: 20px;">
-    <div class="box-header">
-        <span class="title">Kiểm tra hệ thống</span>
-    </div>
-    <div class="box-content scrollable">
-        <?php load_message() ?>
-        <?php foreach ($list_check as $item): ?>
-            <div class="box-section news with-icons">
-                <?php if ($item['function']()): ?>
-                    <div class="avatar green">
-                        <i class="icon-ok icon-2x"></i>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet box red">
+            <div class="portlet-title"><div class="caption"><i class="fa fa-check"></i> Kiểm tra hệ thống</div></div>
+            <div class="portlet-body form">
+                <form class="form-horizontal" method="POST">
+                    <div class="form-wizard">
+                        <div class="form-body">
+                            <?php load_step(2) ?>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="tab1">
+                                    <h3 class="block">Kiểm tra hệ thống</h3>
+                                    <?php load_message() ?>
+                                    <?php foreach ($list_check as $item): ?>
+                                        <div class="form-group">
+                                            <label class="control-label col-lg-3"><?php echo $item['name'] ?></label>
+                                            <p class="form-control-static col-lg-9">
+                                                <?php if ($item['function']()): ?>
+                                                    <span class="fa fa-check" style="color: #45b6af"></span>
+                                                <?php else: ?>
+                                                    <?php $_SESSION['checking_system_ok'] = false; ?>
+                                                    <span class="fa fa-times" style="color: #a94442"></span>
+                                                <?php endif ?>
+                                                <?php echo $item['desc'] ?>
+                                            </p>
+                                        </div>
+                                    <?php endforeach ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button name="back" type="submit" class="btn btn-default pull-left"><span class="fa fa-arrow-left"></span> Trở lại</button>
+                            <button name="next" type="submit" class="btn btn-primary pull-right <?php if (!$_SESSION['checking_system_ok']):?>disabled<?php endif ?>">Tiếp theo <span class="fa fa-arrow-right"></span></button>
+                        </div>
                     </div>
-                <?php else: ?>
-                    <?php $_SESSION['checking_system_ok'] = false; ?>
-                    <div class="avatar purple">
-                        <i class="icon-ban-circle icon-2x"></i>
-                    </div>
-                <?php endif ?>
-                <div class="news-content">
-                    <div class="news-title"><?php echo $item['name'] ?></div>
-                    <div class="news-text"><?php echo $item['desc'] ?></div>
-                </div>
+                </form>
             </div>
-        <?php endforeach ?>
+        </div>
     </div>
 </div>
-<form method="POST" class="separate-sections fill-up">
-    <div class="row">
-        <div class="col-md-6 col-xs-6">
-            <button name="back" type="submit" class="btn btn-default fill-up"><i class="icon-arrow-left"></i> Trở lại</button>
-        </div>
-        <div class="col-md-6 col-xs-6">
-            <button name="next" type="submit" class="btn btn-blue pull-right <?php if (!$_SESSION['checking_system_ok']):?>disabled<?php endif ?>">Tiếp theo <i class="icon-signin"></i></button>
-        </div>
-    </div>
-</form>

@@ -1,39 +1,11 @@
-Database updated:
-blogs:
-delete col: type_url, type_title, type_view, font, color
-rename: recycle_bin to status
-update status values: status != 0 => change to 2
-new set: 2(deleted), 1(draft), 0(normal)
+Update all files and folder.
+zencms_config
+-- Update type column `value` from varchar(20) to text use: ALTER TABLE `zen_cms_config` MODIFY `value` TEXT;
 
-config:
-add column func_import (varchar(50)) to table zen_cms_config
-add column func_export (varchar(50)) to table zen_cms_config
-add column locate (varchar(50)) to table zen_cms_config
-add column for (varchar(20)) to table zen_cms_config
+Zen_cms_widget
+--- Add col callback varchar 100: ALTER TABLE  `zen_cms_widgets` ADD  `callback` VARCHAR( 100 ) NOT NULL ;
 
-
-Delete some row in table config and keep:
-- home
-- title
-- keyword
-- des
-- templates
-
-- email
-- mail_host
-- mail_port
-- mail_smtp_secure
-- mail_smtp_auth
-- mail_setfrom
-- mail_username
-- mail_password
-- mail_name
-
-widgets:
-add column template varchar(100) to table zen_cms_widgets
-
-users:
-Update type column from varchar(20) to int use: ALTER TABLE `zen_cms_users` MODIFY `birth` INTEGER;
-ADD col protect INT to table zen_cms_users: ALTER TABLE  `zen_cms_users` ADD  `protect` INT NOT NULL ;
-
-Add table users_set
+zen_cms_blogs
+--- Add col time_update: ALTER TABLE  `zen_cms_blogs` ADD  `time_update` INT NOT NULL AFTER  `time` ;
+--- Update time_update: UPDATE `zen_cms_blogs` SET `time_update` = `time`
+--- Add col attach: ALTER TABLE  `zen_cms_blogs` ADD  `attach` INT NOT NULL DEFAULT  '0' AFTER  `view` ;

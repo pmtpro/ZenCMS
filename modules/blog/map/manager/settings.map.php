@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -31,11 +31,11 @@ ZenView::section('Cài đặt', function() {
             echo '<div class="form-group">
             <label for="allow_post_comment" class="col-lg-2 control-label">Comment bài viết</label>
             <div class="col-lg-9">
-            <input type="checkbox" id="allow_post_comment" name="allow_post_comment" value="1" class="form-control iButton-icons" ' . (ZenView::$D['config']['allow_post_comment'] ? 'checked': '') . '/>
+            <input type="checkbox" id="allow_post_comment" name="allow_post_comment" value="1" ' . (ZenView::$D['config']['allow_post_comment'] ? 'checked': '') . '/>
             </div>
             </div>';
             echo '<div class="form-group">
-            <div class="col-lg-9 col-lg-offset-2"><button type="submit" name="submit-setting" class="btn btn-primary">Lưu thay đổi</button></div>
+            <label class="col-lg-2 control-label"><button type="submit" name="submit-setting" class="btn btn-primary">Lưu thay đổi</button></label>
             </div>';
             echo '</form>';
         });

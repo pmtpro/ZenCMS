@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -30,6 +30,7 @@ Class ZenView
         $tempOBJ,
         $registry_data = array(),
         $message = array(),
+        $message_log = array(),
         $layout_data = array(),
         $menu = array(),
         $D = array();
@@ -41,6 +42,7 @@ Class ZenView
         $display_output = null;
 
     public $data = array();
+
     private $registry;
 
     /**
@@ -54,16 +56,6 @@ Class ZenView
     }
 
     /**
-     * @set undefined vars
-     * @param string $index
-     * @param mixed $value
-     * @return void
-     */
-    public function __set($index, $value) {
-        $this->vars[$index] = $value;
-    }
-
-    /**
      * @param $registry
      * @return ZenView
      */
@@ -73,7 +65,6 @@ Class ZenView
         }
         return self::$instance;
     }
-
 
     /**
      * load header layout
@@ -149,17 +140,9 @@ Class ZenView
             $$key = $value;
         }
 
-        $getSetting = $registry->settings->get(MODULE_NAME);//get setting of this module
-        if (!empty($getSetting)) {
-            if (!isset($getSetting->setting['template_system'])) {
-                $getSetting->setting['template_system'] = null;
-            }
-            $template_system = $getSetting->setting['template_system'];
-        } else $template_system = null;
-
-        if ($template_system !== null) {
-            $layout[] = __FILES_PATH . '/systems/templates/' . $template_system . '/' . __FOLDER_TPL_NAME . '/layout/' . $file_name_layout;
-            $layout[] = __FILES_PATH . '/systems/templates/' . $template_system . '/layout/' . $file_name_layout;
+        if ($registry->isTempSystem) {
+            $layout[] = __FILES_PATH . '/systems/templates/' . $registry->template . '/' . __FOLDER_TPL_NAME . '/layout/' . $file_name_layout;
+            $layout[] = __FILES_PATH . '/systems/templates/' . $registry->template . '/layout/' . $file_name_layout;
         } else {
             /**
              * set layout path
@@ -218,7 +201,7 @@ Class ZenView
         $menu_gen = ZenView::gen_menu($item);
 
         if ($before == true) {
-            self::$menu[$pos]['menu'] = array_merge(array($menu_gen), self::$menu[$pos]['menu']);
+            self::$menu[$pos]['menu'] = array_merge(array($menu_gen), is_array(self::$menu[$pos]['menu']) ? self::$menu[$pos]['menu'] : array());
         } else {
             self::$menu[$pos]['menu'][] = $menu_gen;
         }
@@ -327,6 +310,9 @@ Class ZenView
 
     public static function get_image($return = false)
     {
+        if (empty(self::$registry_data['page_image'])) {
+            self::$registry_data['page_image'] = dbConfig('image');
+        }
         if ($return == true) {
             return self::$registry_data['page_image'];
         }
@@ -343,12 +329,37 @@ Class ZenView
 
     public static function get_url($return = false)
     {
+        if (!self::$registry_data['page_url']) self::$registry_data['page_url'] = HOME;
         if ($return == true) {
             return self::$registry_data['page_url'];
         }
         echo self::$registry_data['page_url'];
     }
 
+    public static function add_meta($name, $content = null, $firstProperty = 'name') {
+        $firstUnique_attr = '';
+        if (is_array($name)) {
+            $meta = '<meta';
+            foreach ($name as $attr => $val) {
+                $meta .= ' ' . $attr . '="' . $val . '"';
+                if (!$firstUnique_attr) $firstUnique_attr = 'meta:' . $attr . '=' . $val;
+            }
+            $meta .= '/>';
+        } else {
+            $key = $firstProperty ? $firstProperty : 'name';
+            $meta = '<meta ' . $key . '="' . $name . '" content="' . $content . '"/>';
+            $firstUnique_attr = 'meta:' . $key . '=' . $name;
+        }
+        self::$registry_data['page_head'][$firstUnique_attr] = $meta;
+    }
+
+    /**
+     * set noindex for page
+     * @param string $bot_name  robots, googlebot, bingbot...
+     */
+    public static function noindex($bot_name = 'robots') {
+        self::add_meta($bot_name, 'noindex');
+    }
 
     /**
      * add js to head
@@ -356,6 +367,9 @@ Class ZenView
      * @param string $pos
      */
     public static function add_js($js_file, $pos = 'head') {
+        if (!preg_match('/^https?:\/\//is', $js_file)) {
+            $js_file = _URL_FILES_SYSTEMS . '/js/' . $js_file;
+        }
         $js_tag = '<script type="text/javascript" src="' . $js_file . '"></script>';
         if ($pos == 'head') {
             self::$registry_data['page_head'][] = $js_tag;
@@ -374,6 +388,10 @@ Class ZenView
         ZenView::add_js($urlJquery, $pos);
     }
 
+    public function load_global_jquery($jquery_name) {
+        echo "<script type=\"text/javascript\" src=\"" . _URL_FILES_SYSTEMS . '/js/jquery/' . $jquery_name . "\"></script>\n";
+    }
+
     /**
      * add css file to head
      * @param $css_file
@@ -390,6 +408,14 @@ Class ZenView
     }
 
 
+    public static function load_bootstrap_css() {
+        echo "<link href=\"" . _URL_FILES_SYSTEMS . "/bootstrap/css/bootstrap.min.css\" type=\"text/css\" rel=\"stylesheet\"/>\n";
+    }
+
+    public function load_bootstrap_js() {
+        echo "<script type=\"text/javascript\" src=\"" . _URL_FILES_SYSTEMS . "/bootstrap/js/bootstrap.min.js\"></script>\n";
+    }
+
     /**
      * add element to head
      * @param $element
@@ -398,12 +424,46 @@ Class ZenView
         self::$registry_data['page_head'][] = $element;
     }
 
+    /**
+     * @param bool $return
+     * @return string
+     */
     public static function get_head($return = false){
+        if (is(ROLE_MANAGER) && MODULE_NAME != 'admin') {
+            $admin_bar = ZenView::admin_navbar();
+        } else $admin_bar = '';
         $out = self::print_arrLine(self::$registry_data['page_head']);
+        $out = $out . "\n" . $admin_bar;
         if ($return == true) return $out;
         echo $out;
     }
 
+    /**
+     * @return string
+     */
+    public static function admin_navbar() {
+        ZenView::add_css(_URL_FILES_SYSTEMS . '/styles/admin/ZenCMS-ADMIN-CP.css');
+        ZenView::add_js(_URL_FILES_SYSTEMS . '/styles/admin/ZenCMS-ADMIN-CP.js', 'foot');
+        return '<div class="ZenCMS-ADMIN-CP-NAV">
+                <ul>
+                    <li class="ZenCMS-ADMIN-CP-LOGO"><a href="' . HOME . '/admin"><img src="' . _URL_FILES_SYSTEMS . '/images/zen-cp-logo.png" alt=""/></a></li>
+                    <li>
+                        <a href="' . HOME . '/admin">Admin CP</a>
+                    </li>
+                    ' . hook('admin', 'admin_navbar') . '
+                    <li class="ZenCMS-ADMIN-CP-BTN-CLOSE"><a>X</a></li>
+                </ul>
+            </div>
+            <span class="ZenCMS-ADMIN-CP-BTN-OPEN"><a>Open</a></span>';
+    }
+
+    public static function add_admin_navbar($arr = array()) {
+        run_hook('admin', 'admin_navbar', function($data) use ($arr) {
+            $icon = ' ';
+            if (!empty($arr['icon'])) $icon = '<span class="' . $arr['icon'] . '"></span> ';
+            return $data . '<li><a href="' . $arr['full_url'] . '">' . $icon . '' . $arr['name'] . '</a></li>';
+        });
+    }
 
     /**
      * add element to foot
@@ -418,7 +478,6 @@ Class ZenView
         if ($return == true) return $out;
         echo $out;
     }
-
 
     /**
      * set message
@@ -606,7 +665,46 @@ Class ZenView
         return true;
     }
 
+    /**
+     * @param mixed $id
+     * @param string $pos
+     * @return bool
+     */
+    public static function render_msg($id, $pos = ZPUBLIC) {
+        if (!isset(ZenView::$message_log[$id])) {
+            return true;
+        }
+        $listType = array('success', 'notice', 'error', 'tip');
+        $foundErr = false;
+        foreach(ZenView::$message_log[$id] as  $msgArr) {
+            if (in_array($msgArr['type'], $listType)) {
+                if ($msgArr['type'] == 'notice' || $msgArr['type'] == 'error') $foundErr = true;
+                $functionCall = 'ZenView::set_' . $msgArr['type'];
+                if (empty($msgArr['pos'])) $msgArr['pos'] = $pos;
+                call_user_func_array($functionCall, array($msgArr['msg'], $msgArr['pos'], $msgArr['redirect']));
+            }
+        }
+        if ($foundErr == true) return false;
+        else return true;
+    }
 
+    /**
+     * @param mixed $id
+     * @param string $type
+     * @param string $msg
+     * @param string $pos
+     * @param bool|string $redirect
+     */
+    public static function log_msg($id, $type, $msg, $pos = '', $redirect = false) {
+        if ($id && $type) {
+            ZenView::$message_log[$id][] = array(
+                'type' => $type,
+                'msg' => $msg,
+                'pos' => $pos,
+                'redirect' => $redirect
+            );
+        }
+    }
     /**
      * set the breadcrumb
      * @param $tree
@@ -803,12 +901,13 @@ Class ZenView
 
     /**
      * @param $data
+     * @param bool $only_data
      */
-    public static function ajax_json_response($data) {
-        ZenView::ajax_response($data);
+    public static function ajax_json_response($data, $only_data = false) {
+        ZenView::ajax_response($data, 'text/json', $only_data);
     }
 
-    public static function ajax_response($data, $type = 'text/json') {
+    public static function ajax_response($data, $type = 'text/json', $only_data = false) {
         if (is_ajax_request()){
             /*
             header('Vary: Accept');
@@ -822,18 +921,33 @@ Class ZenView
             if (!empty($type)) {
                 header('Content-type: ' . $type);
             }
-            if (is_array(self::$registry_data['message'])) {
-                foreach(self::$registry_data['message'] as $pos => $val) {
-                    if(!empty(self::$registry_data['message'][$pos]['error'])) {
-                        $responseData['error'] = self::$registry_data['message'][$pos]['error'];
-                    }
-                    if(!empty(self::$registry_data['message'][$pos]['notice'])) {
-                        $responseData['notice'] = self::$registry_data['message'][$pos]['notice'];
+            if ($only_data) {
+                $responseData = $data;
+            } else {
+                $responseData = array();
+                if (is_array(self::$registry_data['message'])) {
+                    foreach(self::$registry_data['message'] as $pos => $val) {
+                        if(!empty(self::$registry_data['message'][$pos]['error'])) {
+                            $responseData['msg']['error'] = self::$registry_data['message'][$pos]['error'];
+                        }
+                        if(!empty(self::$registry_data['message'][$pos]['notice'])) {
+                            $responseData['msg']['error'] = array_merge($responseData['msg']['error'], self::$registry_data['message'][$pos]['notice']);
+                        }
+                        if(!empty(self::$registry_data['message'][$pos]['success'])) {
+                            $responseData['msg']['success'] = self::$registry_data['message'][$pos]['success'];
+                        }
                     }
                 }
+
+                if (empty($responseData['msg']['error'])) {
+                    $responseData['status'] = 1;
+                } else {
+                    $responseData['status'] = 0;
+                }
+                $responseData['data'] = $data;
             }
+
             if ($type == 'text/json') {
-                $responseData['success'] = $data;
                 echo json_encode($responseData);
             } else {
                 $responseData = $data;
@@ -847,7 +961,7 @@ Class ZenView
      * @param $name
      * @param array $options
      */
-    function show($name, $options = array())
+    public function show($name, $options = array())
     {
         global $registry_data, $registry;
         if (empty($name)) show_error(1001);
@@ -865,74 +979,90 @@ Class ZenView
          */
         $template_tpl = $template_dir . '/' . __FOLDER_TPL_NAME;
 
-        /**
-         * check if module has own template
-         */
-        $getSetting = $registry->settings->get(MODULE_NAME);
-
-        if (!empty($getSetting)) {
-            if (!isset($getSetting->setting['template_system'])) {
-                $getSetting->setting['template_system'] = null;
-            }
-            $template_system = $getSetting->setting['template_system'];
-        } else $template_system = null;
-
-        if (!is_null($template_system) && !empty($template_system)) {
-            $template_dir = __FILES_PATH . '/systems/templates/' . $template_system;
+        if ($registry->isTempSystem) {
+            $template_dir = __FILES_PATH . '/systems/templates/' . $registry->template;
             $template_tpl = $template_dir . '/' . __FOLDER_TPL_NAME;
-        }
-
-        if (empty($options['is_real_path'])) {
-            /**
-             * hash name
-             */
-            $name = trim($name, '/');
-            $list_name = explode('/', $name);
-
-            if (!isset($list_name[1])) {
-                $list_name[1] = $name;
-            }
-
-            $show_module_name = $list_name[0];
-            $name = implode($list_name, '/');
-            $edit_list_name = $list_name;
-            unset($edit_list_name[0]); //remove module name
-            $after_name = implode($edit_list_name, '/');
-
-            $module_tpl_dir = __MODULES_PATH . '/' . $show_module_name . '/tpl';
-            $module_map_dir = __MODULES_PATH . '/' . $show_module_name . '/map';
-            /**
-             * file tpl
-             */
-            $tpl_loc = $template_tpl . '/' . $name;
-            $tpl_module_loc = $module_tpl_dir . '/' . $after_name;
-            $map_module_loc = $module_map_dir . '/' . $after_name;
-
-            $check_file[0] = $tpl_loc . '.tpl.php';
-            $check_file[1] = $tpl_module_loc . '.tpl.php';
-            $check_file[2] = $map_module_loc . '.map.php';
-
-            $__load_map = false;
-
-            foreach ($check_file as $k => $file_show) {
-                if (file_exists($file_show)) {
-                    $__path = $file_show;
-                    if ($k == 2) $__load_map = true;
-                    break;
-                }
-            }
-        } else {
-            if (file_exists($name)) {
-                $__path = $name;
-            }
-        }
-
-        if (empty($__path)) {
-            show_error(1001);
         }
 
         if (!is_dir($template_dir) || !is_readable($template_dir)) {
             show_error(1000);
+        }
+
+        $__load_map = false;
+
+        $name = trim($name, '/');
+        $n = strpos($name, ':');
+        $feature = substr($name, 0, $n);
+        if ($feature) $name = substr($name, $n+1);
+
+        switch ($feature) {
+            default;
+                /**
+                 * hash name
+                 */
+                $list_name = explode('/', $name);
+                if (!isset($list_name[1])) $list_name[1] = $name;
+
+                $package = $list_name[0];
+                $name = implode($list_name, '/');
+                $edit_list_name = $list_name;
+                unset($edit_list_name[0]); //remove module name
+                $after_name = implode($edit_list_name, '/');
+
+                $module_tpl_dir = __MODULES_PATH . '/' . $package . '/tpl';
+                $module_map_dir = __MODULES_PATH . '/' . $package . '/map';
+                /**
+                 * file tpl
+                 */
+                $tpl_loc = $template_tpl . '/' . $name;
+                $tpl_module_loc = $module_tpl_dir . '/' . $after_name;
+                $map_module_loc = $module_map_dir . '/' . $after_name;
+
+                $check_file[0] = $tpl_loc . '.tpl.php';
+                $check_file[1] = $tpl_module_loc . '.tpl.php';
+                $check_file[2] = $map_module_loc . '.map.php';
+
+                foreach ($check_file as $k => $file_show) {
+                    if (file_exists($file_show)) {
+                        $__path = $file_show;
+                        if ($k == 2) $__load_map = true;
+                        break;
+                    }
+                }
+                break;
+            case 'file':
+                if (file_exists($name)) {
+                    $__path = $name;
+                }
+                break;
+            case 'page':
+                /**
+                 * hash name
+                 */
+                $list_name = explode('/', $name);
+                if (!isset($list_name[1])) $list_name[1] = $name;
+                $package = $list_name[0];
+                $name = implode($list_name, '/');
+                if (defined('_PATH_TEMPLATE')) {
+                    $check_file[] = _PATH_TEMPLATE . '/pages/' . $name . '.tpl.php';
+                }
+                $edit_list_name = $list_name;
+                unset($edit_list_name[0]); //remove module name
+                $after_name = implode($edit_list_name, '/');
+                $check_file[] = __MODULES_PATH . '/' . $package . '/pages/' . $after_name . '.tpl.php';
+                $check_file[] = __FILES_PATH . '/systems/default/pages/' . $name . '.tpl.php';
+                foreach ($check_file as $page) {
+                    if (file_exists($page)) {
+                        $__path = $page;
+                        $options['only_map'] = true;
+                        break;
+                    }
+                }
+                break;
+        }
+
+        if (empty($__path)) {
+            show_error(1001);
         }
 
         $this->data['_client'] = $this->registry->user;

@@ -1,0 +1,7 @@
+browseAddOns/
+browseAddOns/browseAddOns.info
+browseAddOns/browseAddOnsController.php
+browseAddOns/browseAddOnsModel.php
+browseAddOns/browseAddOnsSettings.php
+browseAddOns/map/
+browseAddOns/map/index.map.php

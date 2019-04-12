@@ -1,12 +1,12 @@
 <?php
 /**
  * name = Tool
- * icon = icon-wrench
+ * icon = fa fa-wrench
  * position = 180
  */
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -21,23 +21,24 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
-if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
+if (!defined('__ZEN_KEY_ACCESS'))
+    exit('No direct script access allowed');
 
 $data['list_extends_modules'] = get_extend_apps('blog/manager/tools');
 
 $page_title = 'Blog tool';
 ZenView::set_title($page_title);
 $tree[] = url(genUrlAppFollow('blog/manager'), 'Quản lí blog');
-$tree[] = url(genUrlAppFollow('blog/manager/tools'), $page_title);
 ZenView::set_breadcrumb($tree);
 
-/** @noinspection PhpParamsInspection */
+/**
+ @noinspection PhpParamsInspection */
 $data['menus'] = get_extend_apps('blog/manager/tools');
 
 if (empty($data['menus'])) {

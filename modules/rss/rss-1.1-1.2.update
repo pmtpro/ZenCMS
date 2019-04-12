@@ -1,0 +1,9 @@
+update:rss/
+update:rss/readme.txt
+update:rss/rss.info
+update:rss/rssController.php
+update:rss/rssSettings.php
+update:rss/tpl/
+update:rss/tpl/index.tpl.php
+update:rss/rss.struct
+update:rss/rss-1.1-1.2.update

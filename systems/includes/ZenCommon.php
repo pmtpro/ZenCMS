@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -449,17 +449,24 @@ if (!function_exists('is_online')) {
  */
 if (!function_exists('load_library')) {
 
-    function &load_library($class, $options = array('directory' => 'libraries', 'module' => ''))
-    {
+    function &load_library($class, $options = array(
+                                     'directory' => 'libraries',
+                                     'module' => '',
+                                     'cache' => true
+                                 )
+    ) {
         global $registry;
         static $_classes = array();
         if (empty($options['directory'])) {
             $options['directory'] = 'libraries';
         }
+        if (!isset($options['cache'])) {
+            $options['cache'] = true;
+        }
         /**
          * Does the class exist?  If so, we're done...
          */
-        if (isset($_classes['obj'][$class]) && $_classes['options'][$class] == $options) {
+        if (isset($_classes['obj'][$class]) && $_classes['options'][$class] == $options && $options['cache']) {
             return $_classes['obj'][$class];
         }
         $name = FALSE;
@@ -514,9 +521,11 @@ if (!function_exists('load_library')) {
         if (method_exists($object, 'setRegistry')) {
             $object->setRegistry($registry);
         }
-        $_classes['obj'][$class] = $object;
-        $_classes['options'][$class] = $options;
-        return $_classes['obj'][$class];
+        if ($options['cache']) {
+            $_classes['obj'][$class] = $object;
+            $_classes['options'][$class] = $options;
+        }
+        return $object;
     }
 }
 
@@ -602,7 +611,7 @@ if (!function_exists('load_helper')) {
  */
 if (!function_exists('load_apps')) {
 
-    function load_apps($path, $apps)
+    function load_apps($path, $apps, $thisObj = null)
     {
         global $app, $obj, $registry;
         /**
@@ -610,7 +619,8 @@ if (!function_exists('load_apps')) {
          */
         $security = load_library('security');
         $app = $apps;
-        $obj = $registry;
+        if ($thisObj) $obj = $thisObj;
+        else $obj = $registry;
 
         if (empty($apps[0])) {
             $apps[0] = 'index';
@@ -678,12 +688,12 @@ if (!function_exists('get_extend_apps')) {
         /**
          * set default icon
          */
-        $default_icon = 'icon-flag';
+        $default_icon = 'fa fa-flag';
         /**
          * load helper: fhandle
          */
         load_helper('fhandle');
-        $arr_mods = scan_modules();
+        $arr_mods = scan_modules(false);
         $out = array();
 
         foreach ($arr_mods as $mod_name => $arr_info) {
@@ -698,6 +708,7 @@ if (!function_exists('get_extend_apps')) {
                         }
                         $mod['icon'] = isset($extend['icon']) ? $extend['icon'] : $default_icon;
                         $mod['name'] = $mod_title;
+                        $mod['des'] = $extend['des'];
                         $mod['url'] = $url;
                         $mod['title'] = $mod_title;
                         //$mod['full_url'] = HOME . '/' . $extend['router'] . '?appFollow=' . $mod_name . '/' . $url;
@@ -725,7 +736,7 @@ if (!function_exists('get_apps_from_path')) {
         global $registry;
         static $_static_function;
         if (isset($_static_function['get_apps_from_path'][$path . '-' . $router . '-' . $both_index])) {
-           return $_static_function['get_apps_from_path'][$path . '-' . $router . '-' . $both_index];
+            return $_static_function['get_apps_from_path'][$path . '-' . $router . '-' . $both_index];
         }
         $obj = $registry;
         /**
@@ -873,22 +884,23 @@ if (!function_exists('get_apps_from_path')) {
  */
 if (!function_exists('get_list_modules')) {
 
-    function get_list_modules()
+    function getActiveModule()
     {
+        global $zen;
         static $_static_function;
         if (!empty ($_static_function['get_list_modules'])) {
             return $_static_function['get_list_modules'];
         }
         $cache_file = __MODULES_PATH . '/modules.dat';
-        $data = @file_get_contents($cache_file);
-        $data = @unserialize($data);
+        $data = file_get_contents($cache_file);
+        $data = unserialize($data);
         if (empty($data)) {
             $data['admin'] = array();
         }
         /**
          * auto load protected module
          */
-        $list_protected = sysConfig('modules_protected');
+        $list_protected = $zen['config']['modules_protected'];
         foreach ($list_protected as $mod_protected) {
             if (!in_array($mod_protected, array_keys($data))) {
                 $data[$mod_protected] = array();
@@ -899,6 +911,21 @@ if (!function_exists('get_list_modules')) {
     }
 }
 
+if (!function_exists('isModuleActivated')) {
+
+    /**
+     * Check module is activated
+     * @param string $module
+     * @return bool
+     */
+    function isModuleActivated($module) {
+        $listActivated = getActiveModule();
+        $listMod = array_keys($listActivated);
+        if (in_array($module, $listMod)) {
+            return true;
+        } else return false;
+    }
+}
 /**
  * the new way to get model of a module
  * @param bool $name
@@ -928,7 +955,11 @@ if (!function_exists('run_hook')) {
             $GLOBALS['hook'][$module][$hook_name][] = $hook_run;
         } else {
             $weight = (int)$weight;
-            $GLOBALS['hook'][$module][$hook_name][$weight] = $hook_run;
+            if (!isset($GLOBALS['hook'][$module][$hook_name][$weight])) {
+                $GLOBALS['hook'][$module][$hook_name][$weight] = $hook_run;
+            } else {
+                $GLOBALS['hook'][$module][$hook_name][] = $hook_run;
+            }
         }
     }
 }
@@ -1116,9 +1147,10 @@ if (!function_exists('add_widget')) {
     }
 }
 
-if (!function_exists('widget')) {
+if (!function_exists('widget_group')) {
 
     function widget_group($name) {
+        global $registry;
         if (!isset($GLOBALS['widgets'][$name]) || empty ($GLOBALS['widgets'][$name]['config']) || !is_array($GLOBALS['widgets'][$name]['config'])) {
             return false;
         }
@@ -1153,7 +1185,7 @@ if (!function_exists('widget')) {
         /**
          * Get widget from database
          */
-        $listFromDB = model('_background')->_get_widget_group($name, TEMPLATE);
+        $listFromDB = model('widget')->get_widget_group($name, TEMPLATE);
         if (isset($GLOBALS['widgets'][$name]['list']) && is_array($GLOBALS['widgets'][$name]['list'])) {
             $GLOBALS['widgets'][$name]['list'] = array_merge($listFromDB, $GLOBALS['widgets'][$name]['list']);
         } else $GLOBALS['widgets'][$name]['list'] = $listFromDB;
@@ -1172,6 +1204,32 @@ if (!function_exists('widget')) {
             if (!empty ($widget['content'])) {
                 $out .= $wConfig['content']['start'] . h_decode($widget['content']) . $wConfig['content']['end'];
             }
+
+            /**
+             * Render widget
+             */
+            if(!empty($widget['callback'])) {
+                $ex = explode('::', $widget['callback']);
+                $obj = model('widget')->get_widget_callback($ex[0]);
+                /**
+                 * make sure this widget obj is exists
+                 */
+                if ($obj !== NULL) {
+                    if (method_exists($obj, $ex[1])) {
+                        $values = $obj->$ex[1]();
+                        if (!is_array($values)) $values = array();
+                        $replace = array();
+                        foreach ($values as $key=>$value) {
+                            $replace['{'.$key.'}'] = $value;
+                        }
+                        /**
+                         * replace value
+                         */
+                        $out = strtr($out, $replace);
+                    }
+                }
+            }
+
             $out .= $wConfig['end'];
         }
         echo $out;
@@ -1252,9 +1310,12 @@ if (!function_exists('tplConfig')) {
  */
 if (!function_exists('modConfig')) {
 
-    function modConfig($key, $module) {
+    function modConfig($key, $module = '') {
         global $registry;
         static $_static_functions;
+        if (defined('MODULE_NAME') && empty($module)) {
+            $module = MODULE_NAME;
+        }
         if (isset($_static_functions['modConfig'][$key . '-' . $module])) {
             return $_static_functions['modConfig'][$key . '-' . $module];
         }
@@ -1293,25 +1354,106 @@ if (!function_exists('show_error')) {
     function show_error($num, $msg = '')
     {
         global $zen, $registry;
-        $controller = $zen['config']['default_router_error'];
-        $path = __MODULES_PATH;
-        if (isset($num))
-            $error_num = $num;
-        else
-            $error_num = 404;
-        $path_error_controller = $path . '/' . $controller . '/' . $controller . 'Controller.php';
-        include_once $path_error_controller;
-        $class = $controller . 'Controller';
-        $action = 'index';
-        $args = array($error_num);
-        /**
-         * load error controller
-         */
-        $controller = new $class($registry);
-        if (!empty($msg)) {
-            $controller->setSpecialMsg($msg);
+        $error_number = $num;
+        $error_desc = '';
+        $error_html = '';
+        switch ($error_number) {
+            default:
+                $error_name = 'Not found!';
+                $error_desc = 'Sorry, this application does not exist';
+                break;
+            case 403:
+                $error_name = "Forbidden!";
+                $error_desc = "You don't have permission to access on this page";
+                break;
+
+            case 404:
+                $error_name = 'Not found!';
+                $error_desc = 'Sorry, This page does not exist';
+                break;
+
+            case 405:
+                $error_name = 'Not found!';
+                $error_desc = 'Sorry, This file has been deleted by the manager';
+                break;
+
+            case 503:
+                $error_name = 'Access denied';
+                $error_desc = 'You don\'t have permission to access on this page';
+                break;
+
+            case 500:
+                $error_name = 'Server error';
+                $error_desc = 'Something went wrong, We are fixing it! Please come back in a while.';
+                break;
+
+            case 505:
+                $error_name = 'Code error';
+                $error_desc = 'Sorry, This action does not exist. If you are as administrator please review codes';
+                break;
+
+            case 600:
+                /*
+                $error_name = 'Password 2';
+                $error_desc = 'Please confirm password 2';
+                $error_html = '<form class="form-horizontal" method="POST">
+                    <div class="input-group">
+                      <input type="password" name="zen_verity_access" class="form-control" placeholder="Password 2...">
+                      <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit" name="submit_verify"><i class="glyphicon glyphicon-log-in"></i></button>
+                      </span>
+                    </div><!-- /input-group -->
+                </form>';
+                */
+                ZenView::set_title('Nhập mật khẩu cấp 2');
+                $view = new ZenView($registry);
+                $view->show('page:admin-lock');
+                exit;
+                break;
+
+            case 1000:
+                $error_name = 'Template folder does not exists';
+                $error_desc = 'Template folder does not exists';
+                break;
+
+            case 1001:
+                $error_name = 'Template file does not exists';
+                $error_desc = 'Template file does not exists';
+                break;
+
+            case 1005:
+                $error_name = 'Map file does not exists';
+                $error_desc = 'Map file does not exists';
+                break;
+
+            case 2000:
+                $error_name = 'Can not find the settings file';
+                break;
+
+            case 2001:
+                $error_name = 'Class settings does not exists';
+                $error_desc = 'Class settings does not exists';
+                break;
         }
-        $controller->$action($args);
+
+        if ($msg) $error_name = $msg;
+        $error['number'] = $error_number;
+        $error['name'] = $error_name;
+        $error['desc'] = $error_desc;
+        $error['html'] = $error_html;
+
+        $default_tpl = __FILES_PATH . '/systems/default/pages/error/error.tpl.php';
+        if (defined('_PATH_TEMPLATE')) {
+            $fileCheck[] = _PATH_TEMPLATE . '/pages/error/error-' . $error['number'] . '.tpl.php';
+            $fileCheck[] = _PATH_TEMPLATE . '/pages/error/error.tpl.php';
+            foreach($fileCheck as $f) {
+                if (file_exists($f)) {
+                    $file = $f; break;
+                }
+            }
+        } else $file = $default_tpl;
+        if (!isset($file)) $file = $default_tpl;
+        include $file;
         exit;
     }
 }
@@ -1324,20 +1466,27 @@ if (!function_exists('getTemplate')) {
 
     function getTemplate()
     {
-        global $zen;
+        global $zen, $registry;
+        static $_static_function;
+        if ($_static_function['getTemplate']) return $_static_function['getTemplate'];
+
         if (!empty($_SESSION['ss_review_template'])) {
             return $_SESSION['ss_review_template'];
         }
         $device = load_library('DDetect');
-        if (!empty($zen['config']['fromDB']['templates'])) {
-            $templates = $zen['config']['fromDB']['templates'];
+        if (!empty($registry->setting['template'])) {
+            $templates = $registry->setting['template'];
         } else {
-            $templates = getActiveTemplate();
-        }
+            if (!empty($zen['config']['fromDB']['templates'])) {
+                $templates = $zen['config']['fromDB']['templates'];
+            } else {
+                $templates = getActiveTemplate();
+            }
 
-        if (empty($templates)) {
-            $templates['Mobile'] = 'zencms-mobile-web';
-            $templates['other'] = 'zencms-web';
+            if (empty($templates)) {
+                $templates['Mobile'] = 'zencms-default';
+                $templates['other'] = 'zencms-default';
+            }
         }
         if ($device->isMobile()) {
             $out = $templates['Mobile'];
@@ -1357,8 +1506,9 @@ if (!function_exists('getTemplate')) {
             }
         }
         if (empty($out)) {
-            $out = 'zencms-web';
+            $out = 'zencms-default';
         }
+        $_static_function['getTemplate'] = $out;
         return $out;
     }
 }
@@ -1388,6 +1538,21 @@ if (!function_exists('getActiveTemplate')) {
         }
         $_static_function['getActiveTemplate'] = $out;
         return $out;
+    }
+}
+
+if (!function_exists('is_module_activate')) {
+    /**
+     * @param string $module_name
+     * @return bool
+     */
+    function is_module_activate($module_name) {
+        load_helper('fhandle');
+        $list_handle = scan_modules(false);
+        if (in_array($module_name, array_keys($list_handle))) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -1525,8 +1690,9 @@ if (!function_exists('goBack')) {
         if (check_function_replace(__FUNCTION__)) {
             return load_function(__FUNCTION__, func_get_args());
         }
-        if (!empty($_GET['back'])) {
-            $urlBack = urldecode($_GET['back']);
+        $_get_back = ZenInput::get('back', true);
+        if ($_get_back) {
+            $urlBack = urldecode($_get_back);
             $valid = load_library('validation');
             /**
              * make sure this is a url

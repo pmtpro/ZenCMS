@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -27,12 +27,16 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 /**
  * validation token if is a ajax request
  */
-if (is_ajax_request() && !confirmRequest($_POST['input-request-token'])) exit;
+if (is_ajax_request() && !confirmRequest($_POST['input-request-token'])) {
+    ZenView::set_error('Invalid token');
+    ZenView::ajax_response(false);
+    exit;
+}
 
-$model = $obj->model->get('blog');//get blog model
-$model->set_filter('status', array(0,1,2));
-$user = $obj->user;//load user data
-$hook = $obj->hook->get('blog');//get hook
+$model = $obj->model->get('blog'); //get blog model
+$model->set_filter('status', array(0, 1, 2));
+$user = $obj->user; //load user data
+$hook = $obj->hook->get('blog'); //get hook
 
 /**
  * load helpers
@@ -68,15 +72,18 @@ ZenView::add_jquery('jquery.liteuploader.min.js', 'foot');
 ZenView::add_jquery('jquery.form.min.js', 'foot');
 ZenView::add_jquery('jquery.timer.min.js', 'foot');
 ZenView::add_js(_URL_MODULES . '/blog/js/manager/editor.manager.js?v=1', 'foot');
+ZenView::add_js(_URL_MODULES . '/blog/js/manager/images.manager.js', 'foot');
+
+ZenView::add_js('ZeroClipboard/ZeroClipboard.js', 'foot');
+ZenView::add_js(_URL_MODULES . '/blog/js/manager/copy-short-link-image.js', 'foot');
 
 /**
  * receive action ID
  */
 $editorID = 0;
 $type_data = '';
-if (isset($_GET['id'])) {
-    $editorID = (int)$security->removeSQLI($_GET['id']);
-}
+$_get_id = ZenInput::get('id');
+$editorID = $_get_id ? (int)$security->removeSQLI($_get_id) : 0;
 
 /**
  * check blog is exist
@@ -104,9 +111,11 @@ if (!empty($editorID)) {
 /**
  * receive GET action
  */
-if (isset($_GET['act']) && $_GET['act'] == 'new') {
+$_get_act = ZenInput::get('act');
+if ($_get_act == 'new') {
     $editorAct = 'new';
-    if (isset($_GET['type']) && $_GET['type'] == 'folder') {
+    $_get_type = ZenInput::get('type');
+    if ($_get_type == 'folder') {
         $editorType = 'folder';
     } else $editorType = 'post';
 } else {
@@ -118,7 +127,7 @@ if (isset($_GET['act']) && $_GET['act'] == 'new') {
  * check if this blog is folder and editorAct is new,
  * create new blog
  */
-if ($editorAct == 'new'){
+if ($editorAct == 'new') {
     if ($blogActData['type'] != 'folder') {
         ZenView::set_error('Bạn không thể viết bài mới trong mục này!' . $blogActData['type'], ZPUBLIC, $base_url . '/cpanel/' . $editorID);
     } else {
@@ -126,14 +135,14 @@ if ($editorAct == 'new'){
         if (
             empty($lastPost)
             || (!empty($lastPost[0]['name'])
-            && !empty($lastPost[0]['url'])
-            && !empty($lastPost[0]['content'])
-            && !empty($lastPost[0]['type']))
+                && !empty($lastPost[0]['url'])
+                && !empty($lastPost[0]['content'])
+                && !empty($lastPost[0]['type']))
         ) {
             $insID = $model->insert_blog(array(
-                'parent' => $editorID,
-                'type' => $editorType,
-                'status' => 1)
+                    'parent' => $editorID,
+                    'type' => $editorType,
+                    'status' => 1)
             );
             if ($insID) {
                 redirect(modQueryUrl(curPageURL(), 'id=' . $insID . '&act=edit'));
@@ -153,35 +162,50 @@ curBaseURL($base_url . '/editor&id=' . $editorID);
  * type data
  */
 $typeData_list = array('html', 'bbcode');
-if (!empty($_GET['setTypeData']) && in_array(strtolower($_GET['setTypeData']), $typeData_list)) {
-    $blogUpdate['type_data'] = strtolower($_GET['setTypeData']);
-} elseif (!empty($_COOKIE['blog']['type-data']) && in_array(strtolower($_COOKIE['blog']['type-data']), $typeData_list)) {
-    $blogUpdate['type_data'] = strtolower($_COOKIE['blog']['type-data']);
+$_get_setTypeData = ZenInput::get('setTypeData');
+
+$_cookie_blog = ZenInput::cookie('blog', true);
+
+if ($_get_setTypeData && in_array(strtolower($_get_setTypeData), $typeData_list)) {
+    $blogUpdate['type_data'] = strtolower($_get_setTypeData);
+} elseif (!empty($_cookie_blog['type-data']) && in_array(strtolower($_cookie_blog['type-data']), $typeData_list)) {
+    $blogUpdate['type_data'] = strtolower($_cookie_blog['type-data']);
 } else $blogUpdate['type_data'] = 'html';
 
-setcookie('blog[type-data]', $blogUpdate['type_data'], time()+365*24*60*60, "/");
+ZenInput::set_cookie('blog[type-data]', $blogUpdate['type_data'], time() + 365 * 24 * 60 * 60);
 
 /**
  * set menu action
  */
+$menuAct[] = array(
+    'full_url' => $base_url . '/attach&id=' . $editorID,
+    'name' => 'Đính kèm',
+    'icon' => 'fa fa-paperclip'
+);
+$menuAct[] = array(
+    'full_url' => $base_url . '/images&id=' . $editorID,
+    'name' => 'Hình ảnh',
+    'icon' => 'fa fa-photo'
+);
 if ($blogUpdate['type_data'] == 'bbcode') {
     $menuAct[] = array(
-        'full_url' =>  curBaseURL() . '&setTypeData=html',
+        'full_url' => curBaseURL() . '&setTypeData=html',
         'name' => 'Đổi sang HTML',
-        'icon' => 'icon-refresh'
+        'icon' => 'fa fa-refresh'
     );
 } else {
     $menuAct[] = array(
-        'full_url' =>  $base_url . '/attach&id=' . $editorID,
-        'name' => 'Đính kèm',
-        'icon' => 'icon-paper-clip'
-    );
-    $menuAct[] = array(
-        'full_url' =>  curBaseURL() . '&setTypeData=bbcode',
+        'full_url' => curBaseURL() . '&setTypeData=bbcode',
         'name' => 'Đổi sang BBCode',
-        'icon' => 'icon-refresh'
+        'icon' => 'fa fa-refresh'
     );
 }
+$menuAct[] = array(
+    'full_url' => $base_url . '/cpanel/' . $blog['parent'],
+    'name' => 'Đóng',
+    'title' => 'Trở về thư mục trước',
+    'icon' => 'fa fa-times'
+);
 ZenView::set_menu(array(
     'pos' => 'editor_action',
     'menu' => $menuAct
@@ -197,19 +221,6 @@ $blog['type_data'] = $blogUpdate['type_data'];
 $data['blog'] = $blog;
 
 /**
- * insert link and image to tinymce
- */
-$import2tiny = array();
-$image_list = array_merge($model->get_images($editorID), $model->get_images($editorID, 'content'));
-$link_list = array_merge($model->get_links($editorID), $model->get_files($editorID));
-foreach ($image_list as $_img) {
-    $import2tiny['image_list'][] = array('title' => $_img['url'], 'value' => $_img['short_url']);
-}
-foreach ($link_list as $_link) {
-    $import2tiny['link_list'][] = array('title' => $_link['name'], 'value' => $_link['short_link']);
-}
-
-/**
  * load gadget
  */
 $gadget_config = array();
@@ -221,6 +232,11 @@ if ($blog['type'] == 'folder') {
 }
 $gadget_config['config']['filebrowserImageUploadUrl'] = HOME . "/api/ckeditor/upload?type=image&blogID=" . $editorID . "&token=" . genRequestToken() . "&is-ajax-request";
 $gadget_config['config']['filebrowserImageBrowseUrl'] = HOME . "/api/ckeditor/browser?type=image&blogID=" . $editorID . "&token=" . genRequestToken() . "&is-ajax-request";
+/**
+ * form_editor_ckeditor_config hook*
+ */
+$gadget_config = $hook->loader('form_editor_ckeditor_config', $gadget_config, array('var' => $editorID));
+
 gadget_ckeditor('input-content', $gadget_config);
 
 
@@ -233,6 +249,8 @@ if (isset($_POST['submit-save']) || isset($_POST['submit-public'])) {
     formCacheSave('input-auto-import-img');
     formCacheSave('input-upload-icon-keep-ratio');
     formCacheSave('input-upload-icon-resize');
+
+    $blogUpdate['id'] = $data['blog']['id'];
 
     /**
      * move folder action
@@ -257,7 +275,18 @@ if (isset($_POST['submit-save']) || isset($_POST['submit-public'])) {
 
     /************* url **************/
     if (!empty($_POST['input-url'])) {
-        $blogUpdate['url'] = $seo->url($security->cleanXSS($_POST['input-url']));
+        $post_url = $security->cleanXSS($_POST['input-url']);
+        if (strpos($post_url, '/') !== false) {
+            $hash_url = explode('/', $post_url);
+            foreach ($hash_url as $key => $url_item) {
+                if (empty($url_item)) unset($hash_url[$key]);
+                else {
+                    $hash_url[$key] = $seo->url($url_item);
+                }
+            }
+            $url = implode('/', $hash_url);
+        } else $url = $seo->url($post_url);
+        $blogUpdate['url'] = $url;
     } elseif (!empty($blogUpdate['name'])) {
         $blogUpdate['url'] = $seo->url($blogUpdate['name']);
     }
@@ -367,13 +396,13 @@ if (isset($_POST['submit-save']) || isset($_POST['submit-public'])) {
                 'file_data' => $file_data,
                 'file_name' => $file_name,
                 'image_ratio' => $_POST['input-upload-icon-keep-ratio'],
-                'image_resize' => true,
                 'image_x' => $_POST['input-upload-icon-resize'],
                 'image_y' => $_POST['input-upload-icon-resize'],
                 'blog' => $blog,
                 'pos_message' => ZPUBLIC
             )
         ));
+
         if (!empty($updateIcon['icon'])) {
             $blogUpdate['icon'] = $updateIcon['icon'];
             if (!$model->update_blog($updateIcon, $blog['id'])) {
@@ -464,6 +493,10 @@ if (isset($_POST['submit-save']) || isset($_POST['submit-public'])) {
         $blogUpdate['time'] = time();
     }
 
+    if (!empty($_POST['save-option-update-time']) && !is_ajax_request()) {
+        $blogUpdate['time_update'] = time();
+    }
+
     if ($blog['status'] == 0 && empty($_POST['submit-public']) && !empty($_POST['submit-save']) && is_ajax_request()) {
         $blogUpdate['status'] = 0;
     }
@@ -511,6 +544,8 @@ ZenView::set_menu(array(
     'menu' => $iconSet
 ));
 
+$data['base_url'] = $base_url;
+$data['images_upload_url'] = $base_url . '/images&id=' . $blog['id'];
 /**
  * set page title
  */

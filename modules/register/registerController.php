@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -28,16 +28,25 @@ Class registerController Extends ZenController
 {
     function index()
     {
-        global $zen;
         /**
          * set page title
          */
         ZenView::set_title('Đăng kí thành viên');
+        ZenView::noindex();
 
         /**
          * get module config from database
          */
         $registerConfig = $this->config->getModuleConfig('register');
+
+        /**
+         * get hook account
+         */
+        $accHook = $this->hook->get('account');
+        /**
+         * get account model
+         */
+        $accModel = $this->model->get('account');
 
         /**
          * turn off register
@@ -53,7 +62,7 @@ Class registerController Extends ZenController
          * load libraries
          */
         $security = load_library('security');
-        $validation = load_library('validation');
+
         /**
          * get hook
          */
@@ -62,98 +71,132 @@ Class registerController Extends ZenController
          * get register model
          */
         $model = $this->model->get('register');
-        
-        $username_min_len = $zen['config']['user']['username']['min_length'];
-        $username_max_len = $zen['config']['user']['username']['max_length'];
-        $password_min_len = $zen['config']['user']['password']['min_length'];
-        $password_max_len = $zen['config']['user']['password']['max_length'];
 
         if (isset($_POST['submit-register'])) {
             if ($security->check_token('token_register')) {
-                $password_is_ok = FALSE;
                 if (empty($_POST['username'])) {
                     ZenView::set_error('Bạn chưa nhập tài khoản');
                 } else {
-                    if (!$validation->isValid('username', $_POST['username'])) {
-                        ZenView::set_error('Tên tài khoản chỉ bao gồm a-z 0-9 @ _ - .');
-                    } else {
-                        if (strlen($_POST['username']) < $username_min_len or strlen($_POST['username']) > $username_max_len) {
-                            ZenView::set_error('Tên tài khoản chỉ được phép trong khoảng ' . $username_min_len . ' đến ' . $username_max_len . ' kí tự');
-                        }
-                    }
-                }
+                    /**
+                     * valid_data_post_username hook*
+                     */
+                    $username = $accHook->loader('valid_data_post_username', $_POST['username']);
 
-                if (empty($_POST['password'])) {
-                    ZenView::set_error('Bạn chưa nhập mật khẩu');
-                } else {
-                    if (strlen($_POST['password']) < $password_min_len or strlen($_POST['password']) > $password_max_len) {
-                        ZenView::set_error('Mật khẩu chỉ được phép trong khoảng ' . $password_min_len . ' đến ' . $password_max_len . ' kí tự');
-                    } else $password_is_ok = true;
-                }
+                    if (ZenView::render_msg('valid_data_post_username')) {
+                        /**
+                         * valid_data_post_nickname hook*
+                         */
+                        $nickname = $accHook->loader('valid_data_post_nickname', $_POST['username']);
 
-                if (!empty($_POST['repassword'])) {
-                    if ($password_is_ok) {
-                        if ($_POST['password'] != $_POST['repassword']) {
-                            ZenView::set_error('Xác nhận mật khẩu không chính xác');
-                        }
-                    }
-                } else ZenView::set_error('Xác nhận mật khẩu không chính xác');
+                        if (ZenView::render_msg('valid_data_post_nickname')) {
+                            if (empty($_POST['password']) || empty($_POST['repassword'])) {
+                                ZenView::set_error('Bạn chưa nhập mật khẩu');
+                            } else {
+                                /**
+                                 * valid_data_post_password hook*
+                                 */
+                                $password = $accHook->loader('valid_data_post_password', $_POST['password']);
+                                if (ZenView::render_msg('valid_data_post_password')) {
+                                    if ($password != $_POST['repassword']) {
+                                        ZenView::set_error('Xác nhận mật khẩu không chính xác');
+                                    } else {
+                                        $email_ok = true;
+                                        if ($registerConfig['register_turn_on_authorized_email']) {
+                                            if (empty($_POST['email'])) {
+                                                ZenView::set_error('Bạn chưa nhập email');
+                                            } else {
+                                                /**
+                                                 * valid_data_post_email hook*
+                                                 */
+                                                $email = $accHook->loader('valid_data_post_email', $_POST['email']);
+                                                if (!ZenView::render_msg('valid_data_post_username')) {
+                                                    $email_ok = false;
+                                                }
+                                            }
+                                        }
+                                        if ($email_ok) {
+                                            if (!$security->check_token('captcha_code', 'POST')) {
+                                                ZenView::set_error('Mã xác nhận không chính xác');
+                                            } else {
+                                                $data_user['nickname'] = $nickname;
+                                                $data_user['username'] = $username;
+                                                $data_user['password'] = $accModel->encrypt_password($password);
+                                                $data_user['email'] = isset($email) ? $email : '';
+                                                $data_user['perm'] = $registerConfig['register_turn_on_authorized_email'] ? PERM_USER_NEED_ACTIVE : PERM_USER_ACTIVED;
+                                                $data_user['last_ip'] = client_ip();
 
-                if ($registerConfig['register_turn_on_authorized_email']) {
-                    if (empty($_POST['email'])) {
-                        ZenView::set_error('Bạn chưa nhập email');
-                    } else {
-                        if (!$validation->isValid('email', $_POST['email'])) {
-                            ZenView::set_error('Định dạng email không chính xác');
-                        }
-                    }
-                }
+                                                $username_exists = false;
+                                                if ($accModel->user_is_exists($data_user['username'])) {
+                                                    ZenView::set_error('Tài khoản này đã có người sử dụng');
+                                                    $username_exists = true;
+                                                }
 
-                if (!isset($data['errors'])) {
-                    if (!$security->check_token('captcha_code', 'POST')) {
-                        ZenView::set_error('Mã xác nhận không chính xác');
-                    }
-                }
+                                                $email_exists = false;
+                                                if ($data_user['email']) {
+                                                    if ($accModel->email_is_exists($data_user['email'])) {
+                                                        ZenView::set_error('Email này đã có người sử dụng');
+                                                        $email_exists = true;
+                                                    }
+                                                }
 
-                $data_user['nickname'] = h($security->cleanXSS($_POST['username']));
-                $data_user['username'] = h($security->cleanXSS(strtolower($_POST['username'])));
-                $data_user['password'] = md5(md5($_POST['password']));
-                if (isset($_POST['email'])) {
-                    $data_user['email'] = h($security->cleanXSS($_POST['email']));
-                }
-                if ($registerConfig['register_turn_on_authorized_email']) {
-                    $data_user['perm'] = PERM_USER_NEED_ACTIVE;
-                } else {
-                    $data_user['perm'] = PERM_USER_ACTIVED;
-                }
-                $data_user['last_ip'] = client_ip();
+                                                if (!$username_exists && !$email_exists) {
+                                                    $code_confirm = randStr(10, 'num');
+                                                    $code = md5($code_confirm);
+                                                    /**
+                                                     * insert new user
+                                                     */
+                                                    if (!$accModel->insert_user($data_user)) {
+                                                        ZenView::set_error('Lỗi dữ liệu. Vui lòng thử lại');
+                                                    } else {
+                                                        $userID = $accModel->insert_id();
+                                                        set_security_code($userID, 'register', $code);
+                                                        $data_user = $accModel->get_user_data($userID);
 
-                if (ZenView::is_success()) {
-                    if ($model->account_exists($data_user, 'username')) {
-                        ZenView::set_error('Tài khoản này đã có người sử dụng');
-                    }
-                    if ($registerConfig['register_turn_on_authorized_email']) {
-                        if ($model->account_exists($data_user, 'email')) {
-                            ZenView::set_error('Email này đã có người sử dụng');
-                        }
-                    }
-                }
-                if (ZenView::is_success()) {
-                    $code_confirm = randStr(10, 'num');
-                    $code = md5($code_confirm);
-                    $reg = $model->register_user($data_user);
-                    if ($reg) {
-                        $khid = $model->insert_id();
-                        set_security_code($khid, 'register', $code);
-                        $data_user = $this->model->get('account')->get_user_data($khid);
-                        if ($registerConfig['register_turn_on_authorized_email']) {
-                            ZenView::set_success('Chúc mừng bạn đã đăng kí thành công!<br/>
-                        Chúng tôi đã gửi mail xác nhận đến <b>' . $data_user['email'] . '</b> để kích hoạt tài khoản!<br/>
-                        Vui lòng check mail và làm theo hướng dẫn!<br/>
-                        Nếu không nhận được mail kích hoạt. Bạn nên kiểm tra là hòm thư rác hoặc vui lòng <b><a href="' . HOME . '/login">đăng nhập</a></b> và thực hiện gửi lại mail kích hoạt');
-                            $this->hook->loader('send_mail', $data_user, true);
-                        } else {
-                            ZenView::set_success('Đăng kí thành công! Hãy <b><a href="' . HOME . '/login">đăng nhập</a></b> và tham gia cũng chúng tôi');
+                                                        /**
+                                                         * load ZenSmarty library
+                                                         */
+                                                        $smarty = load_library('ZenSmarty');
+                                                        $smarty->set(array(
+                                                            'reg_nickname'  => $data_user['nickname'],
+                                                            'reg_username'  => $data_user['username'],
+                                                            'reg_email'     => $data_user['email'],
+                                                        ));
+
+
+                                                        if ($registerConfig['register_turn_on_authorized_email']) {
+                                                            /**
+                                                             * send mail active to account email
+                                                             */
+                                                            if (!$accModel->send_mail_register($data_user)) {
+                                                                /**
+                                                                 * msg_register_success_send_fail config*
+                                                                 */
+                                                                $msg_send_fail = $registerConfig['msg_register_success_send_fail'] ? $registerConfig['msg_register_success_send_fail'] : $accModel->defaultConfig['msg_register_success_send_fail'];
+                                                                $msg_send_fail = $smarty->fetch_text($msg_send_fail);
+                                                                ZenView::set_error($msg_send_fail);
+                                                            } else {
+                                                                /**
+                                                                 * msg_register_success_send_success config*
+                                                                 */
+                                                                $msg_send_success = $registerConfig['msg_register_success_send_success'] ? $registerConfig['msg_register_success_send_success'] : $accModel->defaultConfig['msg_register_success_send_success'];
+                                                                $msg_send_success = $smarty->fetch_text($msg_send_success);
+                                                                ZenView::set_success($msg_send_success);
+                                                            }
+                                                        } else {
+                                                            /**
+                                                             * msg_register_success config*
+                                                             */
+                                                            $msg_register_success = $registerConfig['msg_register_success'] ? $registerConfig['msg_register_success'] : $accModel->defaultConfig['msg_register_success'];
+                                                            $msg_register_success = $smarty->fetch_text($msg_register_success);
+                                                            ZenView::set_success($msg_register_success);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

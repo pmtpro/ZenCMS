@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -27,19 +27,21 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 class ZenConfig
 {
     private static $instance;
-
+    public $db;
     /**
      * construct
      */
-    function __construct() {}
+    function __construct($registry) {
+        $this->db = $registry->db;
+    }
 
     /**
-     * get instance
-     * @return object
+     * @param $registry
+     * @return ZenConfig
      */
-    public static function getInstance() {
+    public static function getInstance($registry) {
         if (!self::$instance) {
-            self::$instance = new ZenConfig();
+            self::$instance = new ZenConfig($registry);
         }
         return self::$instance;
     }
@@ -116,8 +118,7 @@ class ZenConfig
      * @return mixed
      */
     public function updateConfig($updateData, $funcExport = '', $funcImport = '') {
-        global $registry;
-        return $registry->model->get('_background')->_update_config($updateData, array('func_import'=>$funcImport, 'func_export'=>$funcExport));
+        return $this->_update($updateData, array('func_import'=>$funcImport, 'func_export'=>$funcExport));
     }
 
     /**
@@ -129,6 +130,47 @@ class ZenConfig
     }
 
     /**
+     * UPDATE CONFIG
+     * @param array $arr
+     * @param array $option
+     * @return bool
+     */
+    public function _update($arr = array(), $option = array()) {
+        $locate = '';
+        $for = '';
+        $funcImport = '';
+        $funcExport = '';
+        if (!empty($option['locate'])) {
+            $locate = $option['locate'];
+        }
+        if (!empty($option['for'])) {
+            $for = $option['for'];
+        }
+        if (!empty($option['func_import'])) {
+            $funcImport = $option['func_import'];
+        }
+        if (!empty($option['func_export'])) {
+            $funcExport = $option['func_export'];
+        }
+        $arr = $this->db->sqlQuote($arr);
+        foreach ($arr as $key => $value) {
+            if (is_array($value)) {
+                if (isset($value['data'])) {
+                    if (isset($value['func_export'])) $funcExport = $value['func_export'];
+                    if (isset($value['func_import'])) $funcImport = $value['func_import'];
+                    $value = $value['data'];
+                }
+            }
+
+            $c = $this->db->num_row($this->db->query("SELECT `id` FROM " . tb() . "config where `key`='$key' and `locate`='$locate' and `for`='$for'"));
+            if ($c == 0)
+                $this->db->query("INSERT INTO " . tb() . "config SET `key`='$key', `locate`='$locate', `for`='$for'");
+            $this->db->query("UPDATE " . tb() . "config SET `value`='" . $value . "', `func_import`='$funcImport', `func_export`='$funcExport' where `key`='$key' and `locate`='$locate' and `for`='$for'");
+        }
+        return true;
+    }
+
+    /**
      * update module config. Save as data in db
      * @param string $module
      * @param array $updateData
@@ -137,8 +179,7 @@ class ZenConfig
      * @return mixed
      */
     public function updateModuleConfig($module, $updateData, $funcExport = '', $funcImport = '') {
-        global $registry;
-        return $registry->model->get('_background')->_update_config($updateData, array('for' => 'module', 'locate'=> $module,'func_import'=>$funcImport, 'func_export'=>$funcExport));
+        return $this->_update($updateData, array('for' => 'module', 'locate'=> $module,'func_import'=>$funcImport, 'func_export'=>$funcExport));
     }
 
     /**
@@ -160,7 +201,7 @@ class ZenConfig
      */
     public function updateTemplateConfig($template, $updateData, $funcExport = '', $funcImport = '') {
         global $registry;
-        return $registry->model->get('_background')->_update_config($updateData, array('for' => 'template', 'locate'=> $template,'func_import'=>$funcImport, 'func_export'=>$funcExport));
+        return $this->_update($updateData, array('for' => 'template', 'locate'=> $template,'func_import'=>$funcImport, 'func_export'=>$funcExport));
     }
 
     /**

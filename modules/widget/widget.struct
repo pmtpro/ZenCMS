@@ -1,0 +1,5 @@
+widget/
+widget/widget.info
+widget/widgetController.php
+widget/widgetModel.php
+widget/widgetSettings.php

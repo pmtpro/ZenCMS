@@ -6,10 +6,10 @@ function is_free_input(inputObj) {
 }
 
 $( document ).ready(function() {
-    var icon_auto_save = 'icon-repeat icon-spin';
-    var icon_lock = 'icon-lock';
-    var icon_unlock = 'icon-unlock';
-    var icon_spin = 'icon-spinner icon-spin';
+    var icon_auto_save = 'fa fa-spinner fa-spin';
+    var icon_lock = 'fa fa-lock';
+    var icon_unlock = 'fa fa-unlock';
+    var icon_spin = 'fa fa-spinner fa-spin';
     var obj_icon_action_url = $('a#action-edit-url i');
     var obj_icon_action_title = $('a#action-edit-title i');
     var obj_icon_auto_save = $('a#action-auto-save i');
@@ -32,9 +32,9 @@ $( document ).ready(function() {
             case 'title':
                 var title_len = obj_title.val().length;
                 if (title_len < 20 || title_len > 65) {
-                    $('#note-title').removeClass('status-success').addClass('status-error');
+                    $('#note-title').removeClass('text-success').addClass('text-danger');
                 } else {
-                    $('#note-title').removeClass('status-error').addClass('status-success');
+                    $('#note-title').removeClass('text-danger').addClass('text-success');
                 }
                 $('#note-title').html('Length is: ' + title_len);
                 break;
@@ -42,23 +42,24 @@ $( document ).ready(function() {
                 var keyword_hash = obj_keyword.val().split(',');
                 keyword_hash = keyword_hash.filter(function(v){return $.trim(v)!==''});
                 if (keyword_hash.length > 10) {
-                    $('#note-keyword').removeClass('status-success').addClass('status-error');
+                    $('#note-keyword').removeClass('text-success').addClass('text-danger');
                 } else {
-                    $('#note-keyword').removeClass('status-error').addClass('status-success');
+                    $('#note-keyword').removeClass('text-danger').addClass('text-success');
                 }
                 $('#note-keyword').html('Number keyword: ' + keyword_hash.length);
                 break;
             case 'des':
                 var des_len = obj_des.val().length;
                 if (des_len < 140 || des_len > 160) {
-                    $('#note-des').removeClass('status-success').addClass('status-error');
+                    $('#note-des').removeClass('text-success').addClass('text-danger');
                 } else {
-                    $('#note-des').removeClass('status-error').addClass('status-success');
+                    $('#note-des').removeClass('text-danger').addClass('text-success');
                 }
                 $('#note-des').html('Length is: ' + des_len);
                 break;
         }
     }
+
     function_update_note('title');
     function_update_note('keyword');
     function_update_note('des');
@@ -102,7 +103,7 @@ $( document ).ready(function() {
     /**
      * gen title, url
      */
-    obj_name.on('input',function(e){
+    obj_name.on('change',function(e){
         if (is_free_input(obj_title)) {
             obj_icon_action_title.attr('class', icon_unlock);
             obj_title.removeAttr("readonly");
@@ -124,7 +125,7 @@ $( document ).ready(function() {
                 success:function(data){
                     arrResponse = $.parseJSON(data);
                     obj_url.removeAttr("readonly");
-                    obj_url.val(arrResponse['success']['input-url']);
+                    obj_url.val(arrResponse['data']['input-url']);
                     obj_icon_action_url.attr('class', icon_unlock);
                 }
             });
@@ -238,13 +239,14 @@ function upload_icon(input_id) {
             complete: function(xhr) {
                 result.css('display', 'block');
                 if (xhr.responseText) {
+                    //$('html').html(xhr.responseText);
                     var arrResponse = $.parseJSON(xhr.responseText);
-                    var successRes = arrResponse['success'];
-                    if (typeof arrResponse['error'] === 'undefined') {
-                        result.html("<img src=\"/files/posts/images/" + successRes['input-icon'] + "\"/>\n<input type=\"hidden\" name=\"input-icon\" value=\"" + successRes['input-icon'] + "\"/>");
+                    var successRes = arrResponse['data'];
+                    if (arrResponse['status'] == 1) {
+                        result.html("<img src=\"files/posts/images/" + successRes['input-icon'] + "\" class=\"img-responsive\"/>\n<input type=\"hidden\" name=\"input-icon\" value=\"" + successRes['input-icon'] + "\"/>");
                     } else {
                         var displayError = '';
-                        $.each(arrResponse['error'], function(index, val){
+                        $.each(arrResponse['msg']['error'], function(index, val){
                             displayError += val + '<br/>';
                         });
                         result.html(displayError);

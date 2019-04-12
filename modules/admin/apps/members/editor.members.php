@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -37,11 +37,9 @@ $p = load_library('pagination');
 
 $baseUrl = HOME . '/admin/members';
 
-if (isset($_GET['id'])) {
-    $id = $security->removeSQLI($_GET['id']);
-} else {
-    $id = 0;
-}
+$_get_id = ZenInput::get('id');
+$id = $_get_id ? $security->removeSQLI($_get_id) : 0;
+
 if (!$accModel->user_is_exists($id)) {
     ZenView::set_error('Xin lỗi, không tồn tại người dùng này!', ZPUBLIC, $baseUrl . '/list');
     exit;
@@ -52,7 +50,7 @@ $data['user'] = $accModel->get_user_data($id);
 $perm_config = sysConfig('user_perm');
 $list_perm_value = array_keys($perm_config['key']);
 
-if ((($perm_config['key'][$obj->user['perm']] <= $perm_config['key'][$data['user']['perm']]) || $data['user']['protect'] == 1) && $obj->user['id'] != $data['user']['id']) {
+if ((($perm_config['key'][$obj->user['perm']] < $perm_config['key'][$data['user']['perm']]) || $data['user']['protect'] == 1) && $obj->user['id'] != $data['user']['id']) {
     ZenView::set_error('Xin lỗi, bạn không đủ quyền để chỉnh sửa người này!');
     $data['not_allow'] = true;
 } else {

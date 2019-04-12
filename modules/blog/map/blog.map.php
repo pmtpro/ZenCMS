@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,16 +16,16 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 ZenView::section('Trang chủ', function() {
     ZenView::block('Top mới nhất', function() {
         echo '<ul class="list-grid">';
-        foreach (ZenView::$D['list']['new'] as $new) {
+        if (ZenView::$D['list']['new']) foreach (ZenView::$D['list']['new'] as $new) {
             echo '<li class="col-xs-6 col-sm-3 col-md-2">
                 <span class="grid-item">
                   <a href="' . $new['full_url'] . '">
@@ -47,7 +47,7 @@ ZenView::section('Trang chủ', function() {
         echo '</ul>';
     });
     $list_id = tplConfig('list_blog_cat_display');
-    foreach ($list_id as $catID) {
+    if ($list_id) foreach ($list_id as $catID) {
         $list = model('blog')->get_list_blog($catID, array('get' => 'url, name, title, time, view, icon', 'both_child' => false));
         if (!empty($list)) {
             $catData = model('blog')->get_blog_data($catID);

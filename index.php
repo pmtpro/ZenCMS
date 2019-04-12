@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,21 +16,12 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
-error_reporting(E_ALL & ~E_STRICT & ~E_NOTICE);
-
-ini_set('memory_limit', '-1');
-
-ob_start();
-/**
- * start session *
- */
-session_start();
 
 /**
  * * define the key access for all file **
@@ -81,26 +72,21 @@ require __SYSTEMS_PATH . '/includes/ZenStartProcess.php';
 require __SYSTEMS_PATH . '/includes/ZenInit.php';
 
 /**
- * include the core file
- */
-require __SYSTEMS_PATH . '/includes/ZenCore.php';
-
-/**
  * load the router
  */
-$registry->router = new ZenRouter($registry);
+$router = new ZenRouter();
 
 /**
  * set the controller path
  */
-$registry->router->setPath(__MODULES_PATH);
+$router->setPath(__MODULES_PATH);
 
 /**
- * * load the controller **
+ * load the controller **
  */
-$registry->router->loader();
+$router->loader();
 
 /**
- * * include the system.php file **
+ * end process
  */
 require __SYSTEMS_PATH . '/includes/ZenEndProcess.php';

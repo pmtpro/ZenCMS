@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -60,9 +60,11 @@ ZenView::section(ZenView::get_title(true), function() {
             </tr>');
             echo '</tbody></table>';
         });
-        echo('<div class="box-footer">
-        <input type="submit" name="submit-save" id="submit-save" value="Lưu thay đổi" class="btn btn-blue rm-fill-up"/>
-        </div>');
+        ZenView::col(function() {
+            ZenView::col_item(12, function() {
+                echo '<div class="pull-right"><input type="submit" name="submit-save" id="submit-save" value="Lưu thay đổi" class="btn btn-primary rm-fill-up"/></div>';
+            });
+        });
         echo '</form>';
     });
 });

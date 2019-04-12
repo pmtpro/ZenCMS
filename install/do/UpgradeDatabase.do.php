@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,25 +16,25 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 if (empty($_SESSION['process']['CheckSystem'])) {
-    redirect('install?do=CheckSystem');
+    redirect('/?do=CheckSystem');
     exit;
 }
 if (empty($_SESSION['process']['DatabaseInfo'])) {
-    redirect('install?do=DatabaseInfo');
+    redirect('/?do=DatabaseInfo');
     exit;
 }
 
 if ($_SESSION['process']['UpgradeDatabase'] == true && isset($_POST['next'])) {
-    redirect('install?do=Finished');
+    redirect('/?do=Finished');
     exit;
 }
 
@@ -63,250 +63,175 @@ if (isset($_POST['submit-reset']))  {
 $upgrade = array(
     array(
         'name' => 'zen_cms_config',
-        'desc' => 'Thêm cột `func_import` VARCHAR( 50 )',
+        'desc' => 'Thay đổi kiểu dữ liệu cột `value` từ varchar sang text',
+        'sql'  => 'ALTER TABLE `zen_cms_config` MODIFY `value` TEXT',
         'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_config', 'func_import')) return true;
-                return $db->query('ALTER TABLE  `zen_cms_config` ADD  `func_import` VARCHAR( 50 ) NOT NULL');
+                if (!db_check_column_is_exists('zen_cms_config', 'value')) return false;
+                return $db->query('ALTER TABLE `zen_cms_config` MODIFY `value` TEXT');
             },
         'upgrade' => !empty($_SESSION['upgradeProcess'][0]) ? true:false
     ),
     array(
-        'name' => 'zen_cms_config',
-        'desc' => 'Thêm cột `func_export` VARCHAR( 50 )',
+        'name' => 'zen_cms_widgets',
+        'desc' => 'Thêm cột `callback` VARCHAR(100)',
+        'sql'  => 'ALTER TABLE  `zen_cms_widgets` ADD  `callback` VARCHAR( 100 ) NOT NULL',
         'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_config', 'func_export')) return true;
-                return $db->query('ALTER TABLE  `zen_cms_config` ADD  `func_export` VARCHAR( 50 ) NOT NULL');
+                if (db_check_column_is_exists('zen_cms_widgets', 'callback')) return true;
+                return $db->query('ALTER TABLE  `zen_cms_widgets` ADD  `callback` VARCHAR( 100 ) NOT NULL');
             },
         'upgrade' => !empty($_SESSION['upgradeProcess'][1]) ? true:false
     ),
     array(
-        'name' => 'zen_cms_config',
-        'desc' => 'Thêm cột `locate` VARCHAR( 50 )',
+        'name' => 'zen_cms_blogs',
+        'desc' => 'Thêm cột `time_update` INT',
+        'sql'  => 'ALTER TABLE  `zen_cms_blogs` ADD  `time_update` INT NOT NULL AFTER  `time`',
         'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_config', 'locate')) return true;
-                return $db->query('ALTER TABLE  `zen_cms_config` ADD  `locate` VARCHAR( 50 ) NOT NULL');
+                if (db_check_column_is_exists('zen_cms_blogs', 'time_update')) return true;
+                return $db->query('ALTER TABLE  `zen_cms_blogs` ADD  `time_update` INT NOT NULL AFTER  `time`');
             },
         'upgrade' => !empty($_SESSION['upgradeProcess'][2]) ? true:false
     ),
     array(
-        'name' => 'zen_cms_config',
-        'desc' => 'Thêm cột `for` VARCHAR( 20 )',
+        'name' => 'zen_cms_blogs',
+        'desc' => 'Cập nhật dữ liệu cột `time_update`',
+        'sql'  => 'UPDATE `zen_cms_blogs` SET `time_update` = `time`',
         'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_config', 'for')) return true;
-                return $db->query('ALTER TABLE  `zen_cms_config` ADD  `for` VARCHAR( 20 ) NOT NULL');
+                if (!db_check_column_is_exists('zen_cms_blogs', 'time_update')) return false;
+                return $db->query('UPDATE `zen_cms_blogs` SET `time_update` = `time`');
             },
         'upgrade' => !empty($_SESSION['upgradeProcess'][3]) ? true:false
     ),
     array(
-        'name' => 'zen_cms_config',
-        'desc' => 'Xóa key thừa và giữ lại: home, title, keyword, des, email, mail_host, mail_port, mail_smtp_secure, mail_smtp_auth, mail_setfrom, mail_username, mail_password, mail_name',
+        'name' => 'zen_cms_blogs',
+        'desc' => 'Thêm cột `attach` INT',
+        'sql'  => "ALTER TABLE  `zen_cms_blogs` ADD  `attach` INT NOT NULL DEFAULT  '0' AFTER  `view`",
         'function' => function() use ($db) {
-                return $db->query("DELETE FROM  `zen_cms_config` WHERE `key`!='home' AND `key`!='title' AND `key`!='keyword' AND `key`!='des' AND `key`!='email' AND `key`!='mail_host' AND `key`!='mail_port' AND `key`!='mail_smtp_secure' AND `key`!='mail_smtp_auth' AND `key`!='mail_setfrom' AND `key`!='mail_username' AND `key`!='mail_password' AND `key`!='mail_name'");
+                if (db_check_column_is_exists('zen_cms_blogs', 'attach')) return true;
+                return $db->query("ALTER TABLE  `zen_cms_blogs` ADD  `attach` INT NOT NULL DEFAULT  '0' AFTER  `view`");
             },
         'upgrade' => !empty($_SESSION['upgradeProcess'][4]) ? true:false
     ),
     array(
-        'name' => 'zen_cms_widgets',
-        'desc' => 'Thêm cột `template` VARCHAR( 100 )',
+        'name' => 'zen_cms_blogs',
+        'desc' => 'Cập nhật dữ liệu cột `attach`',
+        'sql'  => "",
         'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_widgets', 'template')) return true;
-                return $db->query('ALTER TABLE  `zen_cms_widgets` ADD  `template` VARCHAR( 100 ) NOT NULL');
+                if (!db_check_column_is_exists('zen_cms_blogs', 'attach')) return false;
+                $sql = "SELECT `id` FROM `zen_cms_blogs`";
+                $query = $db->query($sql);
+                while ($row = $db->fetch_array($query)) {
+                    $bid = $row['id'];
+                    $linkQuery = $db->query("SELECT `id` FROM `zen_cms_blogs_links` WHERE `sid` = '$bid'");
+                    $fileQuery = $db->query("SELECT `id` FROM `zen_cms_blogs_files` WHERE `sid` = '$bid'");
+                    if ($db->num_row($linkQuery) || $db->num_row($fileQuery)) {
+                        $db->query("UPDATE `zen_cms_blogs` SET `attach` = '1' WHERE `id` = '$bid'");
+                    }
+                }
+                return true;
             },
         'upgrade' => !empty($_SESSION['upgradeProcess'][5]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_users',
-        'desc' => 'Thay đổi kiểu dữ liệu cột `birth` từ VARCHAR(20) sang INT',
-        'function' => function() use ($db) {
-                return $db->query('ALTER TABLE `zen_cms_users` MODIFY `birth` INTEGER');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][6]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_users',
-        'desc' => 'Thêm cột `protect` INT',
-        'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_users', 'protect')) return true;
-                return $db->query('ALTER TABLE  `zen_cms_users` ADD  `protect` INT NOT NULL');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][7]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_users_set',
-        'desc' => 'Thêm bảng `zen_cms_users_set`',
-        'sql' => 'CREATE TABLE IF NOT EXISTS `zen_cms_users_set` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `key` varchar(50) NOT NULL,
-  `value` varchar(255) NOT NULL,
-  `func_import` varchar(50) NOT NULL,
-  `func_export` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;',
-        'function' => function() use ($db) {
-                return $db->query('CREATE TABLE IF NOT EXISTS `zen_cms_users_set` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) NOT NULL,
-  `key` varchar(50) NOT NULL,
-  `value` varchar(255) NOT NULL,
-  `func_import` varchar(50) NOT NULL,
-  `func_export` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][8]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Xóa cột `type_url`',
-        'function' => function() use ($db) {
-                if (!db_check_column_is_exists('zen_cms_blogs', 'type_url')) return true;
-                return $db->query('ALTER TABLE `zen_cms_blogs` DROP COLUMN `type_url`');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][8]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Xóa cột `type_title`',
-        'function' => function() use ($db) {
-                if (!db_check_column_is_exists('zen_cms_blogs', 'type_title')) return true;
-                return $db->query('ALTER TABLE `zen_cms_blogs` DROP COLUMN `type_title`');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][9]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Xóa cột `type_view`',
-        'function' => function() use ($db) {
-                if (!db_check_column_is_exists('zen_cms_blogs', 'type_view')) return true;
-                return $db->query('ALTER TABLE `zen_cms_blogs` DROP COLUMN `type_view`');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][10]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Xóa cột `font`',
-        'function' => function() use ($db) {
-                if (!db_check_column_is_exists('zen_cms_blogs', 'font')) return true;
-                return $db->query('ALTER TABLE `zen_cms_blogs` DROP COLUMN `font`');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][11]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Xóa cột `color`',
-        'function' => function() use ($db) {
-                if (!db_check_column_is_exists('zen_cms_blogs', 'color')) return true;
-                return $db->query('ALTER TABLE `zen_cms_blogs` DROP COLUMN `color`');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][12]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Đổi tên cột `recycle_bin` thành `status`',
-        'function' => function() use ($db) {
-                if (db_check_column_is_exists('zen_cms_blogs', 'status')) return true;
-                return $db->query('ALTER TABLE `zen_cms_blogs` CHANGE `recycle_bin` `status` INT');
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][13]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_blogs',
-        'desc' => 'Cập nhật lại trạng thái bài viết (chuyển tất cả bài có status khác 0 sang 2)',
-        'function' => function() use ($db) {
-                if (!db_check_column_is_exists('zen_cms_blogs', 'status')) return false;
-                return $db->query("UPDATE `zen_cms_blogs` SET `status` = '2' WHERE `status` != '0'");
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][14]) ? true:false
-    ),
-    array(
-        'name' => 'zen_cms_mobigate',
-        'desc' => 'Thêm bảng `zen_cms_mobigate`',
-        'function' => function() use ($db) {
-                return $db->query("CREATE TABLE IF NOT EXISTS `zen_cms_mobigate` (
-  `id` int(100) NOT NULL AUTO_INCREMENT,
-  `appid` text NOT NULL,
-  `stt` int(100) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;");
-            },
-        'upgrade' => !empty($_SESSION['upgradeProcess'][15]) ? true:false
     ),
 );
 
 $countSuccess = 0;
 ?>
 
-<div class="row" style="text-align: center;">
-    <div class="padded">
-        <h1 style="font-size: 30px">Nâng cấp database</h1>
+<div class="row">
+    <div class="col-md-12">
+        <h3 class="page-title">
+            Cài đặt ZenCMS <small>Bước 5</small>
+        </h3>
     </div>
 </div>
 
-<div class="login box" style="margin-top: 20px;">
-    <div class="box-header">
-        <span class="title">Nâng cấp database</span>
-    </div>
-    <div class="box-content scrollable">
-        <?php load_message() ?>
-        <?php foreach ($upgrade as $key => $item): ?>
-            <div class="box-section news with-icons">
-                <?php if (isset($_POST['submit-upgrade']) && empty($_SESSION['process']['UpgradeDatabase'])) { ?>
-                    <?php if (empty($_SESSION['upgradeProcess'][$key])): ?>
-                        <?php if (call_user_func($item['function'])): ?>
-                            <?php $countSuccess++ ?>
-                            <?php $_SESSION['upgradeProcess'][$key] = true?>
-                            <div class="avatar green">
-                                <i class="icon-ok icon-2x"></i>
+<div class="row">
+    <div class="col-md-12">
+        <div class="portlet box red">
+            <div class="portlet-title"><div class="caption"><i class="fa fa-check"></i> Nâng cấp database</div></div>
+            <div class="portlet-body form">
+                <form class="form-horizontal" method="POST">
+                    <div class="form-wizard">
+                        <div class="form-body">
+                            <?php load_step(5) ?>
+                            <div class="tab-content">
+                                <?php load_message() ?>
+                                <div class="tab-pane active" id="tab1">
+                                    <table class="table table-bordered table-striped">
+                                        <thead><tr><td>Bảng</td><td>Mô tả</td><td>Câu lệnh</td><td>Kết quả</td></tr></thead>
+                                        <?php foreach ($upgrade as $key => $item): ?>
+                                            <tr>
+                                                <td>
+                                                    <?php echo $item['name'] ?>
+                                                </td>
+                                                <td>
+                                                    <?php echo $item['desc'] ?>
+                                                </td>
+                                                <td>
+                                                    <!-- Button trigger modal -->
+                                                    <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#sql-<?php echo $key ?>">Xem</button>
+                                                    <div class="modal fade" id="sql-<?php echo $key ?>" tabindex="-1" role="dialog">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Đóng</span></button>
+                                                                    <h4 class="modal-title">Câu lệnh</h4>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <p><?php echo $item['sql'] ?></p>
+                                                                </div>
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Đóng</button>
+                                                                </div>
+                                                            </div><!-- /.modal-content -->
+                                                        </div><!-- /.modal-dialog -->
+                                                    </div><!-- /.modal -->
+                                                </td>
+                                                <td>
+                                                    <?php if (isset($_POST['submit-upgrade']) && empty($_SESSION['process']['UpgradeDatabase'])) { ?>
+                                                        <?php if (empty($_SESSION['upgradeProcess'][$key])): ?>
+                                                            <?php if (call_user_func($item['function'])): ?>
+                                                                <?php $countSuccess++ ?>
+                                                                <?php $_SESSION['upgradeProcess'][$key] = true?>
+                                                                <label class="label label-success">Thành công</label>
+                                                            <?php else: ?>
+                                                                <label class="label label-danger">Thất bại</label>
+                                                            <?php endif ?>
+                                                        <?php else: ?>
+                                                            <label class="label label-success">Thành công</label>
+                                                        <?php endif ?>
+                                                    <?php } elseif ($_SESSION['process']['UpgradeDatabase'] == true) { ?>
+                                                        <label class="label label-success">Thành công</label>
+                                                    <?php } else { ?>
+                                                        <?php if (empty($_SESSION['upgradeProcess'][$key])): ?>
+                                                            <label class="label label-default">Chưa làm gì</label>
+                                                        <?php else: ?>
+                                                            <label class="label label-success">Thành công</label>
+                                                        <?php endif ?>
+                                                    <?php } ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach ?>
+                                        <?php
+                                        if ($countSuccess && $countSuccess == count($_SESSION['upgradeProcess'])) {
+                                            $_SESSION['process']['UpgradeDatabase'] = true;
+                                        }
+                                        ?>
+                                    </table>
+                                </div>
                             </div>
-                        <?php else: ?>
-                            <div class="avatar purple">
-                                <i class="icon-ban-circle icon-2x"></i>
-                            </div>
-                        <?php endif ?>
-                     <?php else: ?>
-                        <div class="avatar green">
-                            <i class="icon-ok icon-2x"></i>
                         </div>
-                     <?php endif ?>
-                <?php } elseif ($_SESSION['process']['UpgradeDatabase'] == true) { ?>
-                    <div class="avatar green">
-                        <i class="icon-ok icon-2x"></i>
+                        <div class="form-actions">
+                            <a href="<?php echo HOME ?>?do=DatabaseInfo&next=UpgradeDatabase" class="btn btn-default pull-left"><span class="fa fa-arrow-left"></span> Trở lại</a>&nbsp;
+                            <button name="submit-reset" type="submit" class="btn btn-default">Làm lại <i class="fa fa-refresh"></i></button>
+                            <?php if ($_SESSION['process']['UpgradeDatabase'] == true): ?>
+                                <button name="next" type="submit" class="btn btn-primary pull-right">Tiếp tục <i class="fa fa-arrow-right"></i></button>
+                            <?php else: ?>
+                                <button name="submit-upgrade" type="submit" class="btn btn-primary pull-right">Bắt đầu nâng cấp <i class="fa fa-retweet"></i></button>
+                            <?php endif ?>
+                        </div>
                     </div>
-                <?php } else { ?>
-                    <?php if (empty($_SESSION['upgradeProcess'][$key])): ?>
-                        <div class="avatar purple">
-                            <i class="icon-question-sign"></i>
-                        </div>
-                    <?php else: ?>
-                        <div class="avatar green">
-                            <i class="icon-ok icon-2x"></i>
-                        </div>
-                    <?php endif ?>
-                <?php } ?>
-                <div class="news-content">
-                    <div class="news-title"><?php echo $item['name'] ?></div>
-                    <div class="news-text"><?php echo $item['desc'] ?></div>
-                </div>
+                </form>
             </div>
-        <?php endforeach ?>
+        </div>
     </div>
 </div>
-
-<?php if ($countSuccess == count($upgrade)) $_SESSION['process']['UpgradeDatabase'] = true;?>
-
-<form method="POST" class="separate-sections fill-up">
-    <div class="row">
-        <div class="col-md-6 col-xs-6">
-            <a href="<?php echo HOME ?>/install?do=DatabaseInfo&next=UpgradeDatabase" class="btn btn-default fill-up"><i class="icon-arrow-left"></i> Trở lại</a>
-            <button name="submit-reset" type="submit" class="btn btn-default">Làm lại bước này <i class="icon-refresh"></i></button>
-        </div>
-        <div class="col-md-6 col-xs-6">
-            <?php if ($_SESSION['process']['UpgradeDatabase'] == true): ?>
-                <button name="next" type="submit" class="btn btn-blue pull-right ">Tiếp tục <i class="icon-signin"></i></button>
-            <?php else: ?>
-                <button name="submit-upgrade" type="submit" class="btn btn-blue pull-right ">Bắt đầu nâng cấp <i class="icon-retweet"></i></button>
-            <?php endif ?>
-        </div>
-    </div>
-</form>

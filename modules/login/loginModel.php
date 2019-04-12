@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -29,23 +29,39 @@ Class loginModel Extends ZenModel
 
     public $data_user = array();
 
+    public function logged() {
+        if (!empty($this->user['id'])) {
+            return true;
+        }
+        return false;
+    }
+    public function login_flood() {
+        if (isset($_SESSION['session_num_errors_login'])) {
+            if ($_SESSION['session_num_errors_login'] >= 3) {
+                return true;
+            }
+        } else $_SESSION['session_num_errors_login'] = 0;
+        return false;
+    }
+    public function update_login_flood() {
+        $_SESSION['session_num_errors_login']++;
+    }
+    public function reset_login_flood() {
+        $_SESSION['session_num_errors_login'] = 0;
+    }
+    public function cookie_time_hold() {
+        return 3600 * 24 * 365;
+    }
     public function check_login($data)
     {
-
         $username = $this->db->sqlQuote($data['username']);
         $password = $this->db->sqlQuote(md5(md5($data['password'])));
-
         $re = $this->db->query("SELECT * FROM " . tb() . "users where `username`='$username'");
         $count = $this->db->num_row($re);
-
         if ($count == 1) {
-
             $ro = $this->db->fetch_array($re);
-
             if ($ro['password'] == $password) {
-
                 $this->data_user = $ro;
-
                 return TRUE;
             } else {
                 return FALSE;
@@ -57,11 +73,8 @@ Class loginModel Extends ZenModel
 
     public function update_login($ss_zen_login = false)
     {
-
         if (!empty($this->data_user)) {
-
             if (!empty($ss_zen_login)) {
-
                 $user_id = $this->data_user['id'];
                 $update = $this->db->query("UPDATE " . tb() . "users SET `last_ip`='" . client_ip() . "', 
                                                 `last_login` = '" . time() . "', 
@@ -79,7 +92,6 @@ Class loginModel Extends ZenModel
 
     public function get_data_user()
     {
-
         return $this->data_user;
     }
 

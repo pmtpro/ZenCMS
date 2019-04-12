@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,8 +16,8 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
- * @author ZenThang
+ * @copyright 2012-2014 ZenCMS Team
+ * @author ZenCMS Team
  * @email thangangle@yahoo.com
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
@@ -71,7 +71,8 @@ class ZenModel
 
     public function get($name = false) {
         if (!$name) {
-            return $this;
+            $name = MODULE_NAME;
+            //return $this;
         }
         $class = $name . 'Model';
         /**

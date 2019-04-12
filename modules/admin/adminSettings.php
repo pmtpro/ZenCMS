@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,15 +16,16 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
-if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
+if (!defined('__ZEN_KEY_ACCESS'))
+    exit('No direct script access allowed');
 
-Class adminSettings Extends ZenSettings
+class adminSettings extends ZenSettings
 {
 
     public function __construct()
@@ -34,14 +35,27 @@ Class adminSettings Extends ZenSettings
             'general' => 'admin',
             'caches' => 'admin',
             'members' => 'admin',
-            'settings' => 'admin',
-            'system' => 'admin');
+            'login' => '',
+            'logout' => '',
+            'ajax_check_update' => 'admin'
+        );
 
         $this->setting['verify_access'] = array(
-            'admin',
-            'admin/general/modules/upload',
-            'admin/general/templates/import');
+            'admin/general',
+            'admin/caches',
+            'admin/members',
+        );
 
-        $this->setting['template_system'] = 'admin';
+        $this->setting['run'] = array(
+            'check_update_js'   => 'admin/'
+        );
+
+        $this->setting['template'] = array(
+            'Mobile' => 'sys:admin-feature-phone',
+            'other' => 'sys:admin-flat',
+            'iOS' => 'sys:admin-flat',
+            'AndroidOS' => 'sys:admin-flat',
+            'WindowsPhoneOS' => 'sys:admin-flat'
+        );
     }
 }

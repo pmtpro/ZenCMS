@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -28,23 +28,19 @@ Class logoutController Extends ZenController
 {
     function index()
     {
-        /**
-         * load security library
-         */
-        $security = load_library('security');
+        $model = $this->model->get('logout');
         if (isset($_POST['submit-logout'])) {
-            if ($security->check_token('token-logout')) {
-                $_SESSION = array();
-                if (session_destroy() && setcookie('ZENCK_USER_ID', '', time() - 3600, "/") && setcookie('ZENCK_LOGIN_TOKEN', '', time() - 3600, "/")) {
-                    ZenView::set_success('Thoát thành công!', ZPUBLIC, HOME);
-                    session_unset();
-                } else ZenView::set_error('Lỗi trong khi thoát!');
-            }
+            if ($model->logout()) {
+                $_get_back = ZenInput::get('back', true);
+                if ($_get_back) {
+                    $back = urlencode($_get_back);
+                } else $back = HOME;
+                ZenView::set_success('Thoát thành công!', ZPUBLIC, $back);
+            } else ZenView::set_error('Lỗi trong khi thoát!');
         }
         ZenView::set_title('Thoát');
+        ZenView::noindex();
         ZenView::set_url(HOME . '/logout');
-        $data['token-logout'] = $security->get_token('token-logout');
-        $this->view->data = $data;
         $this->view->show('logout');
     }
 }

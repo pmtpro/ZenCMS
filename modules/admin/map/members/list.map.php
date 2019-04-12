@@ -1,30 +1,7 @@
 <?php
-/**
- * ZenCMS Software
- * Copyright 2012-2014 ZenThang
- * All Rights Reserved.
- *
- * This file is part of ZenCMS.
- * ZenCMS is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
- *
- * ZenCMS is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License
- * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @package ZenCMS
- * @copyright 2012-2014 ZenThang
- * @author ZenThang
- * @email thangangle@yahoo.com
- * @link http://zencms.vn/ ZenCMS
- * @license http://www.gnu.org/licenses/ or read more license.txt
- */
 $functionDataTable = function($list, $pos) {
-    echo '<table class="dTable-disPaginate-hiddenTableSearch">';
-    echo('<thead>
+    echo '<div class="table-responsive"><table class="table table-bordered">';
+    echo '<thead>
           <tr>
             <th style="width: 35px"></th>
             <th><div>Username</div></th>
@@ -33,12 +10,12 @@ $functionDataTable = function($list, $pos) {
             <th><div>Ngày đăng kí</div></th>
             <th><div>Quyền</div></th>
           </tr>
-          </thead>');
+          </thead>';
     foreach ($list as $item) {
         echo '<tr>';
         $navBar = '<div class="btn-group">
                 <button class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
-                    <i class="icon-cog"></i>
+                    <i class="fa fa-cog"></i>
                 </button>
                 <ul class="dropdown-menu">';
         foreach($item['actions'] as $act) {
@@ -55,24 +32,18 @@ $functionDataTable = function($list, $pos) {
         <td><a href="' . $item['perm_detail']['full_url'] . '">' . $item['perm_detail']['display'] . '</a></td>');
         echo '</tr>';
     }
-    echo '</table>';
-    echo '<div class="table-footer"><div class="dataTables_paginate">';
+    echo '</table></div>';
     ZenView::display_paging($pos);
-    echo '</div></div>';
 };
 ZenView::section('Quản lí thành viên', function() use ($functionDataTable) {
     ZenView::display_breadcrumb();
-    $blockMenu = '<ul class="box-toolbar">
-    <li class="toolbar-link">
-    <a href="#" data-toggle="dropdown"><i class="icon-search"></i></a>
-    <ul class="dropdown-menu">
+    $blockMenu = '<div class="btn-group"><a href="#" data-toggle="dropdown" class="dropdown-toggle"><i class="fa fa-search"></i></a>
+    <ul class="dropdown-menu pull-right" role="menu">
     <li><a href="' . HOME . '/admin/members/list">Tất cả</a></li>';
     foreach (ZenView::$D['permissions']['name'] as $perm => $name) {
         $blockMenu .= '<li><a href="' . HOME . '/admin/members/list?filter=' . $perm . '">' . $name . '</a></li>';
     }
-    $blockMenu .= '</ul>
-    </li>
-    </ul>';
+    $blockMenu .= '</ul></div>';
     ZenView::block('Danh sách thành viên', function() use ($functionDataTable) {
         if (ZenView::message_exists()) {
             ZenView::padded(function() {

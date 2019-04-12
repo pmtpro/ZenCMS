@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -27,39 +27,5 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 Class registerModel Extends ZenModel
 {
 
-    public function account_exists($data, $check_what = 'username')
-    {
-        $sql = '';
-        $data = $this->db->sqlQuote($data);
-        if (empty($check_what))
-            $check_what = 'username';
-        if ($check_what == 'username') {
-            $sql = "SELECT `id` FROM " . tb() . "users where `username`='".$data['username']."'";
-        } elseif ($check_what == 'email') {
-            $sql = "SELECT `id` FROM " . tb() . "users where `email`='".$data['email']."'";
-        }
-        $count = $this->db->num_row($this->db->query($sql));
-        if ($count == 0)
-            return FALSE;
-        else
-            return TRUE;
-    }
 
-    public function register_user($data)
-    {
-        $data = $this->db->sqlQuote($data);
-        $data['time_reg'] = time();
-        $sql = $this->db->_sql_insert(tb() . "users", $data);
-        $insert = $this->db->query($sql);
-        if ($insert) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
-
-    public function insert_id()
-    {
-        return $this->db->insert_id();
-    }
 }

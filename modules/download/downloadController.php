@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -27,8 +27,36 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 Class downloadController Extends ZenController
 {
 
-    function index() {
-        redirect(HOME);
+    public function index()
+    {
+        /**
+         * load security library
+         */
+        $security = load_library('security');
+
+        /**
+         * get model
+         */
+        $model = $this->model->get('download');
+
+        /**
+         * load time helper
+         */
+        load_helper('time');
+
+        $products = $model->get_product_released(false);
+        if (isset($_POST['sub_download'])) {
+            $list_id = array_keys($_POST['sub_download']);
+            $dlid = base64_decode(hexToStr($list_id[0]));
+            $pro = $products[$dlid];
+            redirect($pro['full_url_endcode']);
+        }
+
+        $data['products'] = $products;
+        $data['download_security_key'] = $security->get_token('download_security_key');
+        $data['page_title'] = 'Download ZenCMS';
+        $this->view->data = $data;
+        $this->view->show('download/index');
     }
 
     function file($arg = array()) {
@@ -88,8 +116,8 @@ Class downloadController Extends ZenController
     }
 
     function get() {
-        $file = $_GET['_file_'];
-        if ($_GET['_file_'] == 'index.php') {
+        $file = ZenInput::get('_file_', true);
+        if ($file == 'index.php') {
             exit;
         }
         $filepath = __FILES_PATH . '/' . $file;
@@ -100,7 +128,8 @@ Class downloadController Extends ZenController
             show_error(404);
         }
         $file_name = basename($file);
-        $type = get_ext($file);
+        $hash_file = explode('.', $file);
+        $type = end($hash_file);
         $mine_type = get_mime_type($type);
         header("Pragma: public");
         header("Expires: 0");

@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,15 +16,15 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
-class ZenDatabase
+class ZenDatabase_mysqli
 {
     private $connection;
     private $result = null;
@@ -47,12 +47,12 @@ class ZenDatabase
     }
 
     /**
-     * @return ZenDatabase
+     * @return ZenDatabase_mysqli
      */
     public static function getInstance()
     {
         if (!self::$instance) {
-            $db_con = new ZenDatabase();
+            $db_con = new ZenDatabase_mysqli();
             if (defined('__ZEN_DB_HOST') && defined('__ZEN_DB_NAME') && defined('__ZEN_DB_USER') && defined('__ZEN_DB_PASSWORD')) {
                 $db_con->db_host = __ZEN_DB_HOST;
                 $db_con->db_user = __ZEN_DB_USER;

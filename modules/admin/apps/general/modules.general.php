@@ -1,12 +1,12 @@
 <?php
 /**
  * name = Quản lí module
- * icon = icon-sitemap
+ * icon = fa fa-puzzle-piece
  * position = 40
  */
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -21,9 +21,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -47,6 +47,11 @@ $security = load_library('security');
  */
 $model = $obj->model->get('admin');
 
+/**
+ * get admin hook
+ */
+$hook = $obj->hook->get('admin');
+
 $cache_file = __MODULES_PATH . '/modules.dat';
 
 $act = '';
@@ -66,13 +71,13 @@ $page_menu[] = array(
     'full_url' => HOME . '/admin/general/modules',
     'name' => 'Quản lí module',
     'title' => 'Quản lí module',
-    'icon' => 'icon-sitemap'
+    'icon' => 'fa fa-puzzle-piece'
 );
 $page_menu[] = array(
-    'full_url' => HOME . '/admin/general/modules/upload',
-    'name' => 'Tải lên module',
-    'title' => 'Tải lên module',
-    'icon' => 'icon-upload-alt'
+    'full_url' => HOME . '/admin/general/modules/install',
+    'name' => 'Cài đặt module',
+    'title' => 'Cài đặt module',
+    'icon' => 'fa fa-flash'
 );
 ZenView::set_menu(array(
     'pos' => 'page_menu',
@@ -91,75 +96,63 @@ switch ($act) {
     default:
         $list_protected = sysConfig('modules_protected');
         $protected = $list_protected;
-        $list = scan_modules();
-        $data['modules'] = array();
-        $activatedList = get_list_modules();
+        $activatedList = getActiveModule();
         $data['module_activated'] = array_keys($activatedList);
-        foreach ($list as $mod => $info) {
-            if (in_array($info['url'], $data['module_activated'])) {
-                $info['activated'] = true;
-                $info['actions'][] = ZenView::gen_menu(array(
-                    'full_url' => HOME . '/admin/general/modules?module=' . $info['url'] . '&action=deactivate',
+
+        run_hook('admin', 'module_actions', function($actions, $info) use ($data) {
+            if ($info['activated']) {
+                $actions[] = ZenView::gen_menu(array(
+                    'full_url' => HOME . '/admin/general/modules?module=' . $info['package'] . '&action=deactivate',
                     'actID' => 'deactivate',
                     'name' => 'Hủy kích hoạt',
-                    'icon' => 'icon-check-empty',
+                    'icon' => 'fa fa-minus-square-o',
                 ));
             } else {
-                $info['activated'] = false;
-                $info['actions'][] = ZenView::gen_menu(array(
-                    'full_url' => HOME . '/admin/general/modules?module=' . $info['url'] . '&action=activate',
+                $actions[] = ZenView::gen_menu(array(
+                    'full_url' => HOME . '/admin/general/modules?module=' . $info['package'] . '&action=activate',
                     'actID' => 'activate',
                     'name' => 'Kích hoạt',
-                    'icon' => 'icon-check',
+                    'icon' => 'fa fa-check',
                 ));
             }
-
-            if (!empty($info['option']) && is_array($info['option'])) {
-                foreach($info['option'] as $url => $optionData) {
-                    $info['actions'][] = ZenView::gen_menu(array(
+            if ($info['readme_file']) $info['readme'] = file_get_contents($info['readme_file']);
+            if (!empty($info['readme'])) {
+                $actions[] = ZenView::gen_menu(array(
+                    'full_url' => HOME . '/admin/general/modules/readme/' . $info['package'],
+                    'actID' => 'readme',
+                    'name' => 'Read me',
+                    'icon' => 'fa fa-legal',
+                ));
+            }
+            $actions[] = ZenView::gen_menu(array(
+                'full_url' => HOME . '/admin/general/modules/info/' . $info['package'],
+                'actID' => 'info',
+                'name' => 'Xem thông tin',
+                'icon' => 'fa fa-info',
+            ));
+            if (!empty($info['options']) && is_array($info['options'])) {
+                foreach ($info['options'] as $url => $optionData) {
+                    $actions[] = ZenView::gen_menu(array(
                         'full_url' => $optionData['full_url'],
                         'actID' => 'option-' . $url,
                         'name' => $optionData['name'],
                         'title' => $optionData['title'],
-                        'icon' => 'icon-cogs',
+                        'icon' => 'fa fa-cogs',
                     ));
                 }
             }
-
-            $info['readme'] = '';
-            if ($info['readme_file']) {
-                $info['readme'] = file_get_contents($info['readme_file']);
-            }
-            if ($info['readme']) {
-                $info['actions'][] = ZenView::gen_menu(array(
-                    'full_url' => HOME . '/admin/general/modules/readme/' . $info['url'],
-                    'actID' => 'readme',
-                    'name' => 'Read me',
-                    'icon' => 'icon-legal',
-                ));
-            }
-
-            $info['actions'][] = ZenView::gen_menu(array(
-                'full_url' => HOME . '/admin/general/modules/info/' . $info['url'],
-                'actID' => 'info',
-                'name' => 'Xem thông tin',
-                'icon' => 'icon-info-sign',
-            ));
-            $info['actions'][] = ZenView::gen_menu(array(
-                'full_url' => HOME . '/admin/general/modules/update/' . $info['url'],
-                'actID' => 'update',
-                'name' => 'Cập nhật',
-                'icon' => 'icon-arrow-up',
-            ));
-            $info['actions'][] = ZenView::gen_menu(array(
+            $actions[] = ZenView::gen_menu(array(
+                'divider' => true,
                 'full_url' => HOME . '/admin/general/modules/uninstall/' . $info['url'],
                 'actID' => 'uninstall',
                 'name' => 'Gỡ bỏ',
-                'icon' => 'icon-remove',
+                'icon' => 'fa fa-trash-o',
             ));
+            return $actions;
+        }, 0);
 
-            $data['modules'][$mod] = $info;
-        }
+        $list = scan_modules();
+        $data['modules'] = $list;
 
         $data['module_list'] = array_keys($data['modules']);
         /**
@@ -176,7 +169,7 @@ switch ($act) {
                 /**
                  * add module protected to active list
                  */
-                foreach($list_protected as $modProtected) {
+                foreach ($list_protected as $modProtected) {
                     if (!in_array($modProtected, $_REQUEST['modules'])) {
                         $_REQUEST['modules'][] = $modProtected;
                     }
@@ -254,247 +247,236 @@ switch ($act) {
                 }
             }
         }
-        $data['module_activated'] = get_list_modules();
-        $data['menus'][HOME . '/admin/general/modules/upload'] = 'Tải lên';
-        ZenView::set_title('Quản lí modules');
+
+        ZenView::set_title('Quản lí module');
         $obj->view->data = $data;
         $obj->view->show('admin/general/modules/index');
         break;
     case 'readme':
         $module_list = scan_modules();
-        if (empty($act_id) || !in_array($_REQUEST['module'], $data['available_module'])) {
-            ZenView::set_error('Không tồn module này!', ZPUBLIC, HOME . '/admin/general/modules');
+        if (empty($act_id) || !in_array($act_id, array_keys($module_list))) {
+            ZenView::set_error('Không tồn tại module này!', ZPUBLIC, HOME . '/admin/general/modules');
             exit;
         }
-        break;
-    case 'log':
-        $modules = scan_modules();
-        if ($_GET['_location'] != 'tmp') {
-            redirect(HOME . '/admin/general/modules');
-            exit;
-        }
-        $mod = '';
-        if (isset($_GET['_m'])) {
-            $mod = __TMP_DIR . '/' . hexToStr($_GET['_m']);
-        }
-        $file = $zip->PclZip($mod);
-        $list = $zip->listContent();
-        if (empty($list)) {
-            @unlink($mod);
-            ZenView::set_error('Không thể đọc module này', ZPUBLIC, HOME . '/admin/general/modules');
-            exit;
-        }
-        $tmpdir = tempDir();
-        if (strpos($list[0]['filename'], '/') !== false) {
-            $hash_file_name = explode('/', $list[0]['filename']);
-            $name = $hash_file_name[0];
-            $list[] = array(
-                'filename' => $tempName,
-                'stored_filename' => $tempName,
-                'size' => 0,
-                'compressed_size' => 0,
-                'folder' => true,
-                'index' => 0,
-                'status' => 0,
-                'crc' => 0
-            );
-        } else {
-            $name = rtrim($list[0]['filename'], '/');
-        }
-        $result = $zip->extract(
-            PCLZIP_OPT_PATH, $tmpdir,
-            PCLZIP_OPT_BY_NAME, $name . '/' . $name . '.info'
-        );
-        if (empty($result)) {
-            rrmdir($tmpdir);
-            @unlink($mod);
-            ZenView::set_error('Không thể giải nén module này', ZPUBLIC, HOME . '/admin/general/modules');
-            exit;
-        }
-        $file_tmp = $result[0]['filename'];
-        $info = $parse->ini_file($file_tmp);
-        if (empty($info['name'])) {
-            $info['name'] = 'Unknown';
-        }
-        if (empty($info['version'])) {
-            $info['version'] = '0.0';
-        }
-        if (empty($info['author'])) {
-            $info['author'] = 'Unknown';
-        }
-        if (empty($info['des'])) {
-            $info['des'] = 'none';
-        }
-        $info['url'] = $name;
-        $data['updatable'] = false;
-        $data['is_exists'] = false;
-        if (in_array($name, array_keys($modules))) {
-            $o_mod = __MODULES_PATH . '/' . $name . '/' . $name . '.info';
-            if (file_exists($o_mod)) {
-                $data['is_exists'] = true;
-                $o_mod_info = $parse->ini_file($o_mod);
-                $o_mod_info['url'] = $name;
-                if ($info['version'] > $o_mod_info['version']) {
-                    $data['updatable'] = true;
-                    ZenView::set_tip('Đây là <b>phiên bản mới</b> của một module đã có trong hệ thống. Vui lòng kiểm tra lại để cập nhật!', 'module-updatable');
-                } elseif ($info['version'] < $o_mod_info['version']) {
-                    ZenView::set_tip('Đây là <b>phiên bản cũ</b> của một module đã có trong hệ thống!', 'module-updatable');
-                } else {
-                    ZenView::set_tip('Đã tồn tại module này. Hãy kiểm tra lại thông tin trước khi cập nhật');
-                }
-            }
-        }
-        /**
-         * remove tmp directory
-         */
-        rrmdir($tmpdir);
-        if (isset($_POST['submit-update'])) {
-            $old_perm = fileperms(__MODULES_PATH);
-            $perm_read = 0755;
-            changeMod(__MODULES_PATH, $perm_read);
-            if ($zip->extract(PCLZIP_OPT_PATH, __MODULES_PATH)) {
-                @unlink($mod);
-                changeMod(__MODULES_PATH, $old_perm);
-                ZenView::set_success('Đã cập nhật thành công module', ZPUBLIC, HOME . '/admin/general/modules');
-            } else {
-                changeMod(__MODULES_PATH, $old_perm);
-                ZenView::set_notice('Không thể cập nhật module này');
-            }
-        }
-        if (isset($_POST['submit-delete'])) {
-            @unlink($mod);
-            redirect(HOME . '/admin/general/modules');
-        }
-        $data['mod'] = $info;
-        $data['o_mod'] = $o_mod_info;
-        ZenView::set_title('Thông tin module');
-        ZenView::set_breadcrumb(url(HOME . '/admin/general/modules/upload', 'Tải lên module'));
+        $data['module'] = $module_list[$act_id];
+        if ($data['module']['readme_file']) $data['module']['readme'] = file_get_contents($data['module']['readme_file']);
+        else ZenView::set_notice('Không tìm thấy file readme.txt', ZPUBLIC, HOME . '/admin/general/modules');
+        ZenView::set_title($act_id . ' | Readme');
         $obj->view->data = $data;
-        $obj->view->show('admin/general/modules/log');
-        return;
+        $obj->view->show('admin/general/modules/readme');
         break;
-    case 'upload':
-        $accept_format = array('rar', 'zip');
-        $data['accept_format'] = implode(', ', $accept_format);
-        if (isset($_POST['submit-upload'])) {
-            /**
-             * load upload library
-             */
-            $upload = load_library('upload', array('init_data' => $_FILES['module']));
-            /**
-             * check uploaded
-             */
-            if ($upload->uploaded) {
+    case 'info':
+        $module_list = scan_modules();
+        if (empty($act_id) || !in_array($act_id, array_keys($module_list))) {
+            ZenView::set_error('Không tồn tại module này!', ZPUBLIC, HOME . '/admin/general/modules');
+            exit;
+        }
+        $data['module'] = $module_list[$act_id];
+        ZenView::set_title($act_id . ' | Thông tin module');
+        $obj->view->data = $data;
+        $obj->view->show('admin/general/modules/info');
+        break;
+    case 'install':
+        $data = array();
+        $get_filename = ZenInput::get('m');
+        $filename = $get_filename ? base64_decode($get_filename) : '';
+        if (ZenInput::get('_location') != 'tmp' || !$filename) {
+            $data['install_process'] = false;
+            $accept_format = array('zip');
+            $data['accept_format'] = implode(', ', $accept_format);
+            ZenView::set_title('Cài đặt module');
+            ZenView::set_tip('Hỗ trợ định dạng ' . $data['accept_format'], 'module-accept-format');
+            ZenView::set_tip('Bạn có thể tải lên module để cài đặt hoặc cài đặt trực tiếp module tại <a href="' . HOME . '/admin/general/modulescp?appFollow=browseAddOns/module">Tìm kiếm module mới</a>', 'install-notice');
 
+            if (isset($_POST['submit-upload'])) {
                 /**
-                 * config upload
+                 * load upload library
                  */
-                $upload->file_overwrite = true;
-                $upload->allowed = $accept_format;
-                $uploadPath = __TMP_DIR;
-                $upload->process($uploadPath);
+                $upload = load_library('upload', array('init_data' => $_FILES['module']));
+                /**
+                 * check uploaded
+                 */
+                if ($upload->uploaded) {
 
-                if ($upload->processed) {
                     /**
-                     * get data up
+                     * config upload
                      */
-                    $dataUp = $upload->data();
-                    $modules = scan_modules();
-                    $zipName = preg_replace('/' . $dataUp['file_ext'] . '$/is', '', $dataUp['file_name']);
-                    $file = $zip->PclZip($dataUp['full_path']);
-                    $list = $zip->listContent();
-                    if (strpos($list[0]['filename'], '/') !== false) {
-                        $hash_file_name = explode('/', $list[0]['filename']);
-                        $tempName = $hash_file_name[0] . '/';
-                        $list[] = array(
-                            'filename' => $tempName,
-                            'stored_filename' => $tempName,
-                            'size' => 0,
-                            'compressed_size' => 0,
-                            'folder' => true,
-                            'index' => 0,
-                            'status' => 0,
-                            'crc' => 0
-                        );
+                    $upload->file_overwrite = false;
+                    $upload->allowed = $accept_format;
+                    $uploadPath = __TMP_DIR;
+                    $upload->process($uploadPath);
+
+                    if ($upload->processed) {
+                        /**
+                         * get data up
+                         */
+                        $dataUp = $upload->data();
+                        redirect(HOME . '/admin/general/modules/install?_location=tmp&m=' . base64_encode($dataUp['file_name']));
                     } else {
-                        $tempName = $list[0]['filename'];
+                        ZenView::set_error($upload->error);
                     }
-                    $module_name = rtrim($tempName, '/');
-                    /**
-                     * List file to check
-                     */
-                    $check = array(
-                        $tempName,
-                        $tempName . $module_name . '.info',
-                        $tempName . $module_name . 'Controller.php',
-                        $tempName . $module_name . 'Settings.php'
-                    );
-                    if (empty($list)) {
-                        ZenView::set_error('Không thể đọc file này: ' . $zip->error_string);
-                        unlink($dataUp['full_path']);
+                }
+            }
+        } else {
+            $url_back = HOME . '/admin/general/modules';
+            $get_back = ZenInput::get('back');
+            if ($get_back) {
+                $get_back = urldecode($get_back);
+                $valid = load_library('validation');
+                if ($valid->isValid('url', $get_back)) {
+                    $url_back = $get_back;
+                }
+            }
+            $data['install_process'] = true;
+            /**
+             * set page title
+             */
+            ZenView::set_title('Kiểm tra cài đặt module');
+            $location = __TMP_DIR;
+            $file_path = $location . '/' . $filename;
+            if (!file_exists($file_path)) {
+                redirect(HOME . '/admin/general/modules');
+                exit;
+            }
+
+            $moduleObj = $model->read_package($file_path);
+
+            if (!$model->is_valid_module($moduleObj)) {
+                ZenView::set_error('Đây không phải một module hợp lệ');
+                unlink($file_path);
+            } else {
+                $package_info = $model->read_package_info($moduleObj);
+                if ($package_info === false) {
+                    ZenView::set_error('Không thể đọc thông tin module này', ZPUBLIC, HOME . '/admin/general/modules');
+                    exit;
+                }
+                $data['module_info'] = $package_info;
+                $data['module_info']['file_size'] = size2text(filesize($file_path));
+
+                $package_struct = $model->read_package_struct($moduleObj);
+                if ($package_struct !== false) {
+                    $data['module_struct'] = $package_struct;
+                }
+
+                $data['module_existed'] = false;
+                $data['update_info'] = false;
+                $module_name = $model->read_package_name($moduleObj);
+                if ($model->module_exists($module_name)) {
+                    $data['module_existed'] = true;
+                    $data['updatable'] = 0;
+                    $exists_module_info = $model->get_available_module_info($module_name);
+                    $data['module_existed_info'] = $exists_module_info;
+                    if ($package_info['version'] > $exists_module_info['version']) {
+                        $data['updatable'] = 1;
+                        $update_info = $model->read_package_update($moduleObj, $exists_module_info['version'], $package_info['version']);
+                        if ($update_info) {
+                            $data['update_info'] = $update_info;
+                            ZenView::set_tip('Đây là <b>phiên bản mới</b> của một module đã có trong hệ thống. Vui lòng kiểm tra lại để cập nhật!');
+                        } else {
+                            ZenView::set_tip('Đây là <b>phiên bản mới</b> của một module đã có trong hệ thống. Vui lòng kiểm tra lại để cài đặt!');
+                        }
+                    } elseif ($package_info['version'] < $exists_module_info['version']) {
+                        $data['updatable'] = -1;
+                        ZenView::set_tip('Đây là <b>phiên bản cũ</b> của một module đã có trong hệ thống. Vui lòng kiểm tra lại để cài đặt!');
                     } else {
-                        $fail = FALSE;
-                        foreach ($check as $checkFile) {
-                            $found = false;
-                            foreach ($list as $zipFile) {
-                                if ($checkFile == $zipFile['filename']) {
-                                    $found = true;
-                                    break;
+                        ZenView::set_tip('Đã tồn tại module này. Hãy kiểm tra lại thông tin trước khi cài đặt');
+                    }
+                }
+
+                $data['folder_install_already_exists'] = false;
+                if (isset($_POST['submit-confirm-install'])) {
+                    /**
+                     * check package: error, code error...
+                     */
+                    $check_package = $model->check_package($moduleObj);
+                    if ($check_package === true) {
+                        $check_folder_install = $model->module_dir_exists($module_name);
+                        if (!$data['module_existed'] && $check_folder_install !== false && !isset($_POST['option-install'])) {
+                            ZenView::set_notice('Đã tồn tại thư mục cài trong hệ thống. Vui lòng lựa chọn để tiếp tục cài đặt');
+                            $data['folder_install_already_exists'] = true;
+                        } else {
+                            if (isset($_POST['option-install'])) {
+                                if ($_POST['option-install'] == 'remove') {
+                                    /**
+                                     * remove all file and folder in exists dir
+                                     */
+                                    rrmdir($check_folder_install);
                                 }
                             }
-                            if ($found == false) {
-                                ZenView::set_notice('Module này không đúng định dạng');
-                                $fail = TRUE;
-                                unlink($dataUp['full_path']);
-                                break;
-                            }
-                        }
-                        if ($fail == false) {
-                            if (in_array($module_name, array_keys($modules))) {
-                                redirect(HOME . '/admin/general/modules/log?_location=tmp&_m=' . strToHex($dataUp['file_name']));
-                                return;
+                            if (!$data['update_info']) {
+                                /**
+                                 * install module
+                                 */
+                                $results = $model->install_module($moduleObj);
                             } else {
-                                $old_perm = fileperms(__MODULES_PATH);
-                                $perm_read = 0755;
-                                changeMod(__MODULES_PATH, $perm_read);
-                                if ($zip->extract(PCLZIP_OPT_PATH, __MODULES_PATH)) {
-                                    unlink($dataUp['full_path']);
-                                    changeMod(__MODULES_PATH, $old_perm);
-                                    ZenView::set_success('Cài đặt module thành công, vui lòng kích hoạt module trước khi sử dụng', ZPUBLIC, HOME . '/admin/general/modules');
-                                } else {
-                                    changeMod(__MODULES_PATH, $old_perm);
-                                    ZenView::set_notice('Không thể giải nén file này');
-                                    unlink($dataUp['full_path']);
-                                }
+                                /**
+                                 * update module
+                                 */
+                                $results = $model->update_module($moduleObj, $data['update_info']);
+                            }
+                            if ($results !== true) {
+                                ZenView::set_error($results);
+                            } else {
+                                unlink($file_path);
+                                $set = $obj->settings->get($module_name);
+                                if (method_exists($set, 'installer')) {
+                                    if (!$set->installer()) {
+                                        $installer = false;
+                                    }
+                                } else $installer = true;
+                                if ($installer) {
+                                    ZenView::set_success(1, ZPUBLIC, $url_back);
+                                } else ZenView::set_notice('Đã cài đặt module. Tuy nhiên quá trình cài đặt không thành công', ZPUBLIC, $url_back);
                             }
                         }
+                    } else {
+                        ZenView::set_error('Module bạn vừa tải lên bị lỗi');
+                        ZenView::set_notice($check_package, ZPUBLIC);
                     }
-                } else {
-                    ZenView::set_error($upload->error);
+                } elseif (isset($_POST['submit-confirm-not-install'])) {
+                    unlink($file_path);
+                    ZenView::set_success('Đã hủy cài đặt', ZPUBLIC, $url_back);
                 }
             }
         }
-        ZenView::set_title('Tải lên module');
-        ZenView::set_tip('Hỗ trợ định dạng ' . $data['accept_format'], 'module-accept-format');
-        ZenView::set_breadcrumb(url(HOME . '/admin/general/modules/upload', 'Tải lên module'));
+
+        if (!$data['module_struct']) {
+            ZenView::set_notice('Không tìm thấy thông tin cấu trúc cho module này', 'more-info');
+        }
+        if (!$data['update_info']) {
+            ZenView::set_notice('Không tìm thấy thông tin update cho module này', 'more-info');
+        }
+
+        ZenView::set_breadcrumb(url(HOME . '/admin/general/modules/install', 'Cài đặt module'));
         $obj->view->data = $data;
-        $obj->view->show('admin/general/modules/upload');
+        $obj->view->show('admin/general/modules/install');
         break;
     case 'uninstall':
         $modules = scan_modules();
         $list_protected = sysConfig('modules_protected');
         if (empty($act_id) || !in_array($act_id, array_keys($modules))) {
-            ZenView::set_error('Không tồn module này!', ZPUBLIC, HOME . '/admin/general/modules');
+            ZenView::set_error('Không tồn tại module này!', ZPUBLIC, HOME . '/admin/general/modules');
+            exit;
+        }
+        if (in_array($act_id, $list_protected)) {
+            ZenView::set_error('Bạn không thể gỡ bỏ module này vì lí do hệ thống', ZPUBLIC, HOME . '/admin/general/modules');
             exit;
         }
         if (isset($_POST['submit-cancel'])) {
-            redirect( HOME . '/admin/general/modules');
+            redirect(HOME . '/admin/general/modules');
             exit;
         }
-        $activated = get_list_modules();
+        $data = array();
+        $activated = getActiveModule();
         if (isset($_POST['submit-uninstall'])) {
             $module_path = __MODULES_PATH . '/' . $act_id;
             if (is_dir(($module_path))) {
+                $set = $obj->settings->get($act_id);
+                if (method_exists($set, 'uninstaller')) {
+                    if (!$set->uninstaller()) {
+                        $uninstaller = false;
+                    }
+                } else $uninstaller = true;
                 $old_perm = fileperms(__MODULES_PATH);
                 $perm_read = 0755;
                 changeMod(__MODULES_PATH, $perm_read);
@@ -514,12 +496,49 @@ switch ($act) {
                 if (!empty($activated) && is_array($activated)) {
                     file_put_contents($cache_file, serialize($activated));
                 }
-                ZenView::set_success(1, ZPUBLIC, HOME . '/admin/general/modules');
+                if ($uninstaller) {
+                    ZenView::set_success(1, ZPUBLIC, HOME . '/admin/general/modules');
+                } else {
+                    ZenView::set_notice('Đã xóa module. Tuy nhiên không thể hoàn thành hủy cài đặt', HOME . '/admin/general/modules');
+                }
             }
         }
         ZenView::set_title('Gỡ bỏ ' . $act_id);
         ZenView::set_tip('Bạn chắc chắn muốn gỡ bỏ module này, các tính năng của module sẽ ngừng hoạt động?');
         $obj->view->data = $data;
         $obj->view->show('admin/general/modules/uninstall');
+        break;
+    case 'checkUpdate':
+        $modules = scan_modules();
+        if (empty($act_id) || !isset($modules[$act_id])) {
+            ZenView::set_error('Không tồn tại module này', ZPUBLIC, HOME . '/admin/general/modules');
+            exit;
+        }
+        $data = array();
+        $moduleData = $modules[$act_id];
+        $result = $model->addon_check_update($act_id, 'module', $moduleData['version']);
+        if ($result->status === 3) {
+            ZenView::set_error('Không tồn tại module này trên ZenCMS Add-ons', ZPUBLIC, HOME . '/admin/general/modules');
+        } elseif ($result->status === 2) {
+            ZenView::set_error('Vui lòng kiểm tra lại cài đặt đồng bộ hoặc code', ZPUBLIC, HOME . '/admin/general/modules');
+        } elseif ($result->status === 1) {
+            ZenView::set_success('Bạn đang sử dụng phiên bản mới nhất của module này', ZPUBLIC, HOME . '/admin/general/modules');
+        } else {
+            ZenView::set_success('Có một phiên bản cần cập nhật');
+            $data['old_version'] = $moduleData;
+            $data['new_version'] = $result->data;
+            if (isset($_POST['submit-update'])) {
+                if (!$data['new_version']->amount || $data['new_version']->paid) {
+                    redirect(genUrlAppFollow('browseAddOns') . '/install/' . $data['new_version']->type . '/' . $data['new_version']->pid);
+                } else {
+                    redirect(genUrlAppFollow('browseAddOns') . '/purchase/' . $data['new_version']->type . '/' . $data['new_version']->pid);
+                }
+            } elseif (isset($_POST['cancel'])) {
+                redirect(HOME . '/admin/general/modules');
+            }
+        }
+        ZenView::set_title($act_id . ' | Kiểm tra cập nhật');
+        $obj->view->data = $data;
+        $obj->view->show('admin/general/modules/checkUpdate');
         break;
 }

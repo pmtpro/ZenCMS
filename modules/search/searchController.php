@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -36,6 +36,7 @@ Class searchController Extends ZenController
          * get blog model
          */
         $model = $this->model->get('search');
+        $hook = $this->hook->get('search');
         /**
          * Load library
          */
@@ -92,7 +93,10 @@ Class searchController Extends ZenController
             if (!$count_blog_like_tag) {
                 ZenView::set_notice('Không có kết quả nào phù hợp', 'search-result');
             } else {
-                $limit = 10;
+                /**
+                 * number_post_per_page hook*
+                 */
+                $limit = $hook->loader('number_post_per_page', 10);
                 $p->setLimit($limit);
                 $p->SetGetPage('page');
                 $start = $p->getStart();

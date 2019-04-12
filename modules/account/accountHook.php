@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -35,6 +35,52 @@ class accountHook extends ZenHook
                         <a href="' . HOME . '/account/forgot_password/reset_password/' . $data['id'] . '/' . $data['security_code']['forgot_password']['code'] . '">' . HOME . '/account/forgot_password/reset_password/' . $data['id'] . '/' . $data['security_code']['forgot_password']['code'] . '</a>');
         return $sent;
     }
+
+    public function valid_data_post_nickname($nickname) {
+        return h($nickname);
+    }
+
+    public function valid_data_post_username($username) {
+        global $registry;
+        $validation = load_library('validation');
+        $security = load_library('security');
+        if (!$validation->isValid('username', $username)) {
+            ZenView::log_msg('valid_data_post_username', 'error', 'Tên tài khoản chỉ bao gồm a-z 0-9 @ _ -');
+        } else {
+            $setting = $registry->settings->get('account');
+            $accConfig = $setting->config;
+            $username_min_len = $accConfig['username']['min_length'];
+            $username_max_len = $accConfig['username']['max_length'];
+            $len = strlen($username);
+            if ($len < $username_min_len or $len > $username_max_len) {
+                ZenView::log_msg('valid_data_post_username', 'error', 'Tên tài khoản chỉ được phép trong khoảng ' . $username_min_len . ' đến ' . $username_max_len . ' kí tự');
+            }
+        }
+        return h($security->cleanXSS(strtolower($username)));
+    }
+
+    public function valid_data_post_password($password) {
+        global $registry;
+        $setting = $registry->settings->get('account');
+        $accConfig = $setting->config;
+        $password_min_len = $accConfig['password']['min_length'];
+        $password_max_len = $accConfig['password']['max_length'];
+        $len = strlen($password);
+        if ($len < $password_min_len or $len > $password_max_len) {
+            ZenView::log_msg('valid_data_post_username', 'error', 'Mật khẩu chỉ được phép trong khoảng ' . $password_min_len . ' đến ' . $password_max_len . ' kí tự');
+        }
+        return $password;
+    }
+
+    public function valid_data_post_email($email) {
+        $validation = load_library('validation');
+        if (!$validation->isValid('email', $email)) {
+            ZenView::log_msg('valid_data_post_username', 'error', 'Định dạng email không chính xác');
+        }
+        return h($email);
+    }
+
+
     public function valid_data_post_fullname($data) {
         $sign_len = 30;
         if (strlen($data)>$sign_len) {
@@ -65,7 +111,7 @@ class accountHook extends ZenHook
 
     public function message_before_display($msg) {
         $bbCode = load_library('bbcode');
-        return $bbCode->parse(parse_smile($msg));
+        return parse_smile($bbCode->parse($msg));
     }
 
     public function message_sub_before_display($msg) {

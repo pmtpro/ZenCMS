@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -600,6 +600,61 @@ class security
         return $str;
     }
 
-}
+    /**
+     * Filter Attributes
+     * Filters tag attributes for consistency and safety
+     * @param	string
+     * @return	string
+     */
+    protected function _filter_attributes($str)
+    {
+        $out = '';
 
-?>
+        if (preg_match_all('#\s*[a-z\-]+\s*=\s*(\042|\047)([^\\1]*?)\\1#is', $str, $matches))
+        {
+            foreach ($matches[0] as $match)
+            {
+                $out .= preg_replace("#/\*.*?\*/#s", '', $match);
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * JS Link Removal
+     *
+     * @param	array
+     * @return	string
+     */
+    protected function _js_link_removal($match)
+    {
+        return str_replace(
+            $match[1],
+            preg_replace(
+                '#href=.*?(alert\(|alert&\#40;|javascript\:|livescript\:|mocha\:|charset\=|window\.|document\.|\.cookie|<script|<xss|data\s*:)#si',
+                '',
+                $this->_filter_attributes(str_replace(array('<', '>'), '', $match[1]))
+            ),
+            $match[0]
+        );
+    }
+
+    /**
+     * JS Image Removal
+     * @param	array
+     * @return	string
+     */
+    protected function _js_img_removal($match)
+    {
+        return str_replace(
+            $match[1],
+            preg_replace(
+                '#src=.*?(alert\(|alert&\#40;|javascript\:|livescript\:|mocha\:|charset\=|window\.|document\.|\.cookie|<script|<xss|base64\s*,)#si',
+                '',
+                $this->_filter_attributes(str_replace(array('<', '>'), '', $match[1]))
+            ),
+            $match[0]
+        );
+    }
+}

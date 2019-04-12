@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -30,16 +30,12 @@ $security = load_library('security');
 $userPerm = load_library('permission');
 $userPerm->set_user($user);
 load_helper('time');
-if (isset($_GET['act'])) {
-    $act = $_GET['act'];
-} else {
-    $act = '';
-}
+
+$act = ZenInput::get('act');
 switch ($act) {
     case 'delete':
-        if (isset($_GET['id'])) {
-            $id = $security->cleanXSS($_GET['id']);
-        } else $id = 0;
+        $get_id = ZenInput::get('id');
+        $id = $get_id ? $security->removeSQLI($get_id) : 0;
         if (empty($id) || !$model->message_is_exists($id)) {
             redirect(HOME . '/account');
         }

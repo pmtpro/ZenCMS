@@ -1,0 +1,14 @@
+register/
+register/apps/
+register/apps/settings/
+register/apps/settings/index.settings.php
+register/map/
+register/map/register.map.php
+register/map/settings/
+register/map/settings/settings.map.php
+register/map/stop.map.php
+register/register.info
+register/registerController.php
+register/registerHook.php
+register/registerModel.php
+register/registerSettings.php

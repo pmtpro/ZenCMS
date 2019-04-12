@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,13 +16,18 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
+
+/**
+ * validation token if is a ajax request
+ */
+if (is_ajax_request() && !confirmRequest($_POST['request-token'])) exit;
 
 $user = $obj->user;
 /**
@@ -36,7 +41,7 @@ $libPerm->set_user($user);
  * get blog model
  */
 $model = $obj->model->get('blog');
-$model->set_filter('status', array(0,1,2));
+$model->set_filter('status', array(0, 1, 2));
 
 /**
  * get blog hook
@@ -48,12 +53,10 @@ $hook = $obj->hook->get('blog');
  */
 $base_url = HOME . '/admin/general/modulescp?appFollow=blog/manager';
 
+$_get_id = ZenInput::get('id');
+$id = $_get_id ? (int)$security->removeSQLI($_get_id) : 0;
 
-if (isset($_GET['id'])) {
-    $id = (int) $security->removeSQLI($_GET['id']);
-} else $id = 0;
-
-if (empty($id) || !$model->blog_exists($id))  {
+if (!$id || !$model->blog_exists($id)) {
     ZenView::set_error('Không tồn tại bài này', ZPUBLIC, $base_url . '/cpanel');
     exit;
 }
@@ -62,8 +65,9 @@ $current_url = $base_url . '/attach&id=' . $id;
 
 $data['blog'] = $model->get_blog_data($id);
 
-if (isset($_GET['editLink'])) {
-    $linkID = (int) $security->removeSQLI($_GET['editLink']);
+$_get_editLink = ZenInput::get('editLink');
+if ($_get_editLink) {
+    $linkID = (int)$security->removeSQLI($_get_editLink);
     if ($model->link_exists($linkID)) {
         $data['link'] = $model->get_link_data($linkID);
         if ($libPerm->is_lower_levels_of($data['link']['uid'])) {
@@ -119,7 +123,8 @@ if (isset($_POST['submit-link'])) {
             $insert_link['time'] = time();
             if (!$model->insert_link($insert_link)) {
                 ZenView::set_error('Lỗi trong khi thêm link', 'link-editor');
-            } else ZenView::set_success(1, 'link-editor');
+            } else
+                ZenView::set_success(1, 'link-editor');
         }
     }
 }
@@ -136,8 +141,9 @@ if (empty($data['links'])) {
  * set location upload file
  */
 $location_file = __FILES_PATH . '/posts/files_upload';
-if (isset($_GET['editFile'])) {
-    $fileID = (int) $security->removeSQLI($_GET['editFile']);
+$_get_editFile = ZenInput::get('editFile');
+if ($_get_editFile) {
+    $fileID = (int)$security->removeSQLI($_get_editFile);
     if ($model->file_exists($fileID)) {
         $data['file'] = $model->get_file_data($fileID);
         /**
@@ -149,7 +155,8 @@ if (isset($_GET['editFile'])) {
         $sub_file_dir = $hash_url[0];
         $data['file']['file_name'] = basename($data['file']['url'], '.' . $real_ext);
         if ($libPerm->is_lower_levels_of($data['file']['uid'])) {
-            ZenView::set_error('Bạn không thể chỉnh sửa file của cấp cao hơn mình', 'file-editor');
+            ZenView::set_error('Bạn không thể chỉnh sửa file của cấp cao hơn mình',
+                'file-editor');
             unset($data['file']);
         } else {
             $data['file_editor_id'] = $fileID;
@@ -176,11 +183,11 @@ if (isset($_GET['editFile'])) {
                     if ($ext != $data['file']['type']) {
                         $file_name = $file_name . '.' . $data['file']['type'];
                     }
-                    $new_url =  $sub_file_dir . '/' . $file_name;
+                    $new_url = $sub_file_dir . '/' . $file_name;
                     $old_path = $location_file . '/' . $data['file']['url'];
                     $new_path = $location_file . '/' . $new_url;
                     if (file_exists($old_path) && is_writable($old_path)) {
-                        if (rename($old_path, $new_path)){
+                        if (rename($old_path, $new_path)) {
                             $update_file['name'] = $name;
                             $update_file['url'] = $new_url;
                             if ($model->update_file($fileID, $update_file)) {
@@ -190,7 +197,8 @@ if (isset($_GET['editFile'])) {
                                 rename($new_path, $old_path);
                             }
                         }
-                    } else ZenView::set_error('Không thể đổi tên file này', 'file-editor');
+                    } else
+                        ZenView::set_error('Không thể đổi tên file này', 'file-editor');
                 }
             }
             if (isset($_POST['submit-del-file'])) {
@@ -208,9 +216,12 @@ if (isset($_GET['editFile'])) {
                             ZenView::set_success(1, 'file-editor', $current_url);
                         }
                     } else {
-                        ZenView::set_error('ZenCMS không thể xóa file này. Vui lòng thử lại', 'file-editor');
+                        ZenView::set_error('ZenCMS không thể xóa file này. Vui lòng thử lại',
+                            'file-editor');
                     }
-                } else ZenView::set_error('ZenCMS có quyền xóa file này trên host. Vui lòng thử lại', 'file-editor');
+                } else
+                    ZenView::set_error('ZenCMS có quyền xóa file này trên host. Vui lòng thử lại',
+                        'file-editor');
             }
         }
     }
@@ -224,7 +235,7 @@ $data['number_file_per_upload'] = $hook->loader('number_file_per_upload', 3);
 if (isset($_POST['submit-upload'])) {
     $upload_success = 0;
     $upload_fail = 0;
-    foreach ($_FILES['file']['name'] as $key=>$fName) {
+    foreach ($_FILES['file']['name'] as $key => $fName) {
         if (!empty($fName)) {
             $dataFile['name'] = $fName;
             $dataFile['type'] = $_FILES['file']['type'][$key];
@@ -237,11 +248,12 @@ if (isset($_POST['submit-upload'])) {
                  * config upload
                  */
                 $upload->file_overwrite = false;
-                if (!empty ($_POST['file_name'][$key])) {
+                if (!empty($_POST['file_name'][$key])) {
                     /**
                      * valid_data_attach_file_name hook*
                      */
-                    $file_name = $hook->loader('valid_data_attach_file_name', $security->cleanXSS($_POST['file_name'][$key]), array('var' => array('blog' => $data['blog'])));
+                    $file_name = $hook->loader('valid_data_attach_file_name', $security->cleanXSS($_POST['file_name'][$key]),
+                        array('var' => array('blog' => $data['blog'])));
                 } else {
                     $file_name = $data['blog']['url'];
                 }
@@ -257,7 +269,8 @@ if (isset($_POST['submit-upload'])) {
                         /**
                          * valid_data_attach_name hook*
                          */
-                        $name = $hook->loader('valid_data_attach_name', $security->cleanXSS($_POST['name'][$key]), array('var' => array('blog' => $data['blog'])));
+                        $name = $hook->loader('valid_data_attach_name', $security->cleanXSS($_POST['name'][$key]),
+                            array('var' => array('blog' => $data['blog'])));
                     } else {
                         $name = $dataUp['file_name'];
                     }
@@ -278,17 +291,21 @@ if (isset($_POST['submit-upload'])) {
                             $upload_fail++;
                         }
                     }
-                } else ZenView::set_error($upload->error, 'file-editor');
-            } else ZenView::set_error($upload->error, 'file-editor');
+                } else
+                    ZenView::set_error($upload->error, 'file-editor');
+            } else
+                ZenView::set_error($upload->error, 'file-editor');
         }
     }
     if (empty($upload_success)) {
         ZenView::set_error('Upload file lỗi. Vui lòng thử lại', 'file-editor');
     } else {
         if (empty($upload_fail)) {
-            ZenView::set_success('Upload thành công ' . $upload_success . ' file', 'file-editor');
+            ZenView::set_success('Upload thành công ' . $upload_success . ' file',
+                'file-editor');
         } else {
-            ZenView::set_notice('Upload hoàn thành ' . $upload_success . ' file, upload lỗi ' . $upload_fail . ' file', 'file-editor');
+            ZenView::set_notice('Upload hoàn thành ' . $upload_success .
+                ' file, upload lỗi ' . $upload_fail . ' file', 'file-editor');
         }
     }
 }
@@ -298,12 +315,13 @@ if (empty($data['files'])) {
 }
 $data['base_url'] = $base_url;
 $data['current_url'] = $current_url;
+
 /**
  * add breadcrumb
  */
 $tree[] = url($base_url, 'Quản lí blog');
 $tree[] = url($base_url . '/cpanel', 'Quản lí nội dung');
-$tree[] = url($base_url . '/editor&id=' . $id, $data['blog']['name']?$data['blog']['name']:'Không tiêu đề');
+$tree[] = url($base_url . '/editor&id=' . $id, $data['blog']['name'] ? $data['blog']['name'] : 'Không tiêu đề');
 ZenView::set_breadcrumb($tree);
 ZenView::set_title('Quản lí đính kèm');
 $obj->view->data = $data;

@@ -12,7 +12,7 @@ body, html, table, form, textarea{
 }
 
 #editor{
-	border: solid #888 1px;
+	border: solid #DDD 1px !important;
 	overflow: hidden;
 }
 
@@ -20,6 +20,7 @@ body, html, table, form, textarea{
 	z-index: 4; 
 	overflow-x: auto;
 	overflow-y: scroll;
+	border-top: solid #888 1px;
 	border-bottom: solid #888 1px;
 	position: relative;
 	clear: both;

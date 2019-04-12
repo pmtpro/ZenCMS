@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,51 +16,123 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 /** include the caching class ** */
-require __SYSTEMS_PATH . '/init/ZenCaching.class.php';
+require __SYSTEMS_PATH . '/init/init.php';
 
-/** include the model class ** */
-require __SYSTEMS_PATH . '/init/ZenModel.class.php';
+/** include the functions file */
+include 'ZenFunctions.php';
 
-/** include the controller class ** */
-require __SYSTEMS_PATH . '/init/ZenController.class.php';
+/** include the common file */
+require_once 'ZenCommon.php';
 
-/** include the view class ** */
-require __SYSTEMS_PATH . '/init/ZenView.class.php';
-
-/** include the template class ** */
-require __SYSTEMS_PATH . '/init/ZenTemplate.class.php';
-
-/** include the registry class ** */
-require __SYSTEMS_PATH . '/init/ZenRegistry.class.php';
-
-/** include the settings class ** */
-require __SYSTEMS_PATH . '/init/ZenSettings.class.php';
-
-/** include the hook class ** */
-require __SYSTEMS_PATH . '/init/ZenHook.class.php';
-
-/** include the router class ** */
-require __SYSTEMS_PATH . '/init/ZenRouter.class.php';
-
-/** include the database class ** */
-require __SYSTEMS_PATH . '/init/ZenDatabase.class.php';
-
-/** include the config class ** */
-require __SYSTEMS_PATH . '/init/ZenConfig.class.php';
-
-/** a new registry object ** */
+/***
+ * initialize a registry object
+ */
 $registry = new ZenRegistry;
 
-/** create the database registry object ** */
-$db = &ZenDatabase::getInstance();
-$zen['db'] = $db;
-$registry->db = $db;
+/**
+ * load security lib
+ */
+$registry->security = load_library('security');
+
+/**
+ * init input class
+ */
+ZenInput::init();
+
+/**
+ * initialize a database object
+ */
+$zen['db'] = &ZenDatabase::getInstance();
+$registry->db = $zen['db'];
+
+/**
+ * initialize ZenConfig
+ */
+$config = new ZenConfig($registry);
+$registry->configOBJ = $config;
+
+/**
+ * get config from database
+ */
+$zen['config']['fromDB'] = $config->loader();
+
+
+//define('HOME', isset($zen['config']['fromDB']['home']) ? $zen['config']['fromDB']['home'] : getHttpHost());
+define('HOME', getHttpHost());
+define('REAL_HOME', getHttpHost());
+define('_URL_FILES', HOME . '/files');
+define('_URL_FILES_SYSTEMS', _URL_FILES . '/systems');
+define('_URL_FILES_POSTS', _URL_FILES . '/posts');
+define('_URL_FILES_FORUM', _URL_FILES . '/forum');
+define('_URL_TEMPLATES', HOME . '/templates');
+define('_URL_MODULES', HOME . '/modules');
+
+/**
+ * validate user session
+ */
+if (!empty($_SESSION['ZENSS_USER_ID']) && !empty($_SESSION['ZENSS_LOGIN_TOKEN'])) {
+    $user_hash_id = $_SESSION['ZENSS_USER_ID'];
+    $zen_login_token = $_SESSION['ZENSS_LOGIN_TOKEN'];
+    /**
+     * validate user cookie
+     */
+} else if (!empty($_COOKIE['ZENCK_USER_ID']) && !empty($_COOKIE['ZENCK_LOGIN_TOKEN'])) {
+    $user_hash_id = $_COOKIE['ZENCK_USER_ID'];
+    $zen_login_token = $_COOKIE['ZENCK_LOGIN_TOKEN'];
+    $_SESSION['ZENSS_USER_ID'] = $_COOKIE['ZENCK_USER_ID'];
+    $_SESSION['ZENSS_LOGIN_TOKEN'] = $_COOKIE['ZENCK_LOGIN_TOKEN'];
+    /**
+     * gen token for a request
+     */
+    genRequestToken();
+}
+
+$registry->user = array();
+/**
+ * Validate user data
+ */
+if (!empty($user_hash_id) && !empty($zen_login_token)) {
+    /**
+     * decode user id
+     */
+    $uid = _decode_user_id($user_hash_id);
+    /**
+     * load user data
+     */
+    $uData = _load_user($uid);
+    if ($uData) {
+        /**
+         * generator login token from password
+         */
+        if ($zen_login_token == md5($uData['password'])) {
+            /**
+             * update login
+             */
+            _update_login($uid);
+            $registry->user = $uData;
+        } else _clean_user_data_log();
+    } else _clean_user_data_log();
+} else _clean_user_data_log();
+
+if (isset($registry->user['id']) ) {
+    define('IS_MEMBER', TRUE);
+} else define('IS_MEMBER', FALSE);
+
+/**
+ * load user helper
+ */
+load_helper('user');
+
+/**
+ * un register globals var
+ */
+unregister_globals();

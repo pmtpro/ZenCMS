@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -56,7 +56,8 @@ class blogHook extends ZenHook
      * @return mixed
      */
     function out_bbcode_content($content) {
-        return $content;
+        $bbCode = load_library('bbcode');
+        return $bbCode->parse($content);
     }
 
     /**
@@ -130,7 +131,7 @@ class blogHook extends ZenHook
          * load bbcode library
          */
         $bbCode = load_library('bbcode');
-        return $bbCode->parse(parse_smile($msg));
+        return parse_smile($bbCode->parse($msg));
     }
 
     public function valid_name($name) {
@@ -185,81 +186,11 @@ class blogHook extends ZenHook
         return $name;
     }
 
-    public function jar_editor($file) {
-
-        $java = load_library('JavaEditor');
-        $model = $this->model->get('blog');
-        if (isset($_POST['sub_copyright']) || isset($_POST['sub_copyright_ticked'])) {
-            $java->loader($file['full_path']);
-            if(!$java->edit_mf()){
-                $process['notices'][] = 'Xin lỗi. Hệ thống không thể chỉnh sửa file này';
-            } else {
-                $updateStt['status'] = $file['status'];
-                $updateStt['status']['copyright'] = 1;
-                $model->update_file($file['id'], $updateStt);
-                $process['success'] = 'Gắn bản quyền vào file <b>MANIFEST.MF</b> thành công!';
-            }
-        }
-        if (isset($_POST['sub_crack']) || isset($_POST['sub_crack_ticked'])) {
-            $java->loader($file['full_path']);
-            if(!$java->crack()){
-                $process['notices'][] = 'Xin lỗi. Hệ thống không thể chỉnh sửa file này';
-            } else {
-                if(!$java->sms_exist()) {
-                    $updateStt['status'] = $file['status'];
-                    $updateStt['status']['crack'] = 1;
-                    $model->update_file($file['id'], $updateStt);
-                    $process['success'] = 'File này không chứa thanh toán sms!';
-                } else {
-                    $updateStt['status'] = $file['status'];
-                    $updateStt['status']['crack'] = 1;
-                    $model->update_file($file['id'], $updateStt);
-                    $process['success'] = 'Crack thành công!';
-                }
-            }
-        }
-
-        if (isset($_POST['sub_bookmark']) || isset($_POST['sub_bookmark_ticked'])) {
-            $java->loader($file['full_path']);
-            if(!$java->setBookmark()){
-                $process['notices'][] = 'Xin lỗi. Hệ thống không thể chỉnh sửa file này';
-            } else {
-                $updateStt['status'] = $file['status'];
-                $updateStt['status']['bookmark'] = 1;
-                $model->update_file($file['id'], $updateStt);
-                $process['success'] = 'Gắn bookmark thành công!';
-            }
-        }
-
-        $file = $model->get_file_data($file['id']);
-
-        if(isset($file['status']['copyright']) && $file['status']['copyright'] ) {
-            $copyright = 'copyright_ticked';
-            $copyright_title = 'Click để gắn lại bản quyền file MANIFEST.MF';
-        } else {
-            $copyright = 'copyright';
-            $copyright_title = 'Gắn bản quyền file MANIFEST.MF';
-        }
-        if(isset($file['status']['crack']) && $file['status']['crack'] ) {
-            $crack = 'crack_ticked';
-            $crack_title = 'Click để crack lại';
-        } else {
-            $crack = 'crack';
-            $crack_title = 'Crack file này';
-        }
-        if(isset($file['status']['bookmark']) && $file['status']['bookmark'] ) {
-            $bookmark = 'bookmark_ticked';
-            $bookmark_title = 'Click để gắn bookmark lại';
-        } else {
-            $bookmark = 'bookmark';
-            $bookmark_title = 'Gắn bookmark';
-        }
-
-        $file['actions_editor'] = array($copyright => $copyright_title, $crack => $crack_title, $bookmark => $bookmark_title);
-        if(isset($process)) $file['process']  = $process;
-        return $file;
-    }
-
+    /**
+     * @param $in_data
+     * @param $stream
+     * @return string
+     */
     public function upload_icon($in_data, $stream) {
 
         /**
@@ -280,23 +211,18 @@ class blogHook extends ZenHook
             $upload->allowed = array('image/*');
 
             /**
-             * init upload config
-             */
-            $upload->image_resize = true;
-            $upload->image_ratio = true;
-            $upload->image_x = 100;
-
-            /**
              * load upload icon config from stream var
              */
-
-            $upload->image_resize = isset($stream['image_resize']) ? $stream['image_resize'] : $upload->image_resize;
-            if ($upload->image_resize) {
-                $upload->image_x = isset($stream['image_x']) ? $stream['image_x'] : $upload->image_x;
+            if (!empty($stream['image_x'])) {
+                $upload->image_resize = true;
+                $upload->image_x = $stream['image_x'];
                 if (empty($stream['image_ratio'])) {
                     $upload->image_ratio = false;
                     $upload->image_y = $upload->image_x;
                 }
+            } else {
+                $upload->image_resize = false;
+                $upload->image_ratio = true;
             }
 
             /**
@@ -310,9 +236,9 @@ class blogHook extends ZenHook
             if ($upload->processed) {
                 $dataUp = $upload->data();
                 if (file_exists($dataUp['full_path'])) {
-                    if (!empty($stream['blog'])) {
+                    if (!empty($stream['blog']) && !empty($stream['blog']['icon'])) {
                         $old_icon = $imageUploadDir . '/' . $stream['blog']['icon'];
-                        if (file_exists($old_icon) && is_readable($old_icon) && $old_icon != $dataUp['full_path']) unlink($old_icon);
+                        if (file_exists($old_icon) && is_file($old_icon) && is_readable($old_icon) && $old_icon != $dataUp['full_path']) unlink($old_icon);
                     }
                     $icon = $subDir . '/' . $dataUp['file_name'];
                     return $icon;
@@ -322,241 +248,20 @@ class blogHook extends ZenHook
         return $in_data;
     }
 
-    public function watermark_image($image_path)
-    {
-        /**
-         * load library
-         */
-        $wm = load_library('watermark');
-
-        $wm->load_src($image_path);
-
-        $wm->load_wm(__FILES_PATH . '/images/logo_watermark/'.dbConfig('logo_watermark'));
-
-
-        if ($wm->do_watermark()) {
-
-            $wm->save($image_path);
-
-        }
-        return $image_path;
-    }
-
-    function upload_file($sid) {
-
-        global $registry;
-
-        /**
-         * get blog model
-         */
-        $model = $registry->model->get('blog');
-
-        $registry->hook->get('blog');
-
-        $extension_not_allow_upload = $registry->hook->get_result('extension_not_allow_upload');
-
-        $num_up = $registry->hook->get_result('number_file_per_upload');
-
-        /**
-         * upload library
-         */
-        $upload = load_library('upload');
-
-        $blog = $model->get_blog_data($sid);
-
-        $dir = __FILES_PATH . '/posts/files_upload';
-
-        $subdir = autoMkSubDir($dir);
-
-        $upload->upload_path = $dir . '/' . $subdir;
-
-        $upload->not_allowed_types = $extension_not_allow_upload;
-
-        $num_has = 0;
-        $result = array();
-
-        for ($i = 1; $i <= $num_up; $i++) {
-
-            $num_has++;
-
-            if (isset($_GET['remote'])) {
-
-                $check_what = $_POST['link' . $i];
-                $get = 'link' . $i;
-
-            } else {
-                $check_what = $_FILES['file' . $i]['tmp_name'];
-                $get = 'file' . $i;
-            }
-
-            if (empty($check_what)) {
-
-                $num_has--;
-
-            } else {
-
-                if (isset($_POST['name' . $i]) && strlen($_POST['name' . $i])) {
-
-                    $upload->set_file_name($blog['name'] . ' ' . $_POST['name' . $i]);
-                }
-
-                if (!$upload->do_upload($get)) {
-
-                    $registry->hook->upload_error[] = implode(', ', array_unique($upload->error));
-
-                } else {
-
-                    $dataup = $upload->data();
-
-                    $InsertData['url'] = $subdir . '/' . $dataup['file_name'];
-                    $InsertData['uid'] = $registry->user['id'];
-                    $InsertData['sid'] = $sid;
-                    $InsertData['size'] = $dataup['file_size'];
-                    $InsertData['type'] = getExt($dataup['file_name']);
-
-                    if (isset($_POST['name' . $i]) && strlen($_POST['name' . $i])) {
-
-                        $InsertData['name'] = h($_POST['name' . $i]);
-                    } else {
-
-                        $InsertData['name'] = h($dataup['file_name']);
-                    }
-
-                    if (!$model->insert_file($InsertData)) {
-
-                        @unlink($dir . '/' . $InsertData['url']);
-
-                        $registry->hook->upload_error[] = 'Không thể ghi dữ liệu';
-
-                    } else {
-
-                        $result[] = $InsertData;
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    function rename_file($file) {
-
-        global $registry;
-
-        /**
-         * get blog model
-         */
-        $model = $registry->model->get('blog');
-
-        $registry->hook->get('blog');
-
-        $seo = load_library('seo');
-
-        $rename = true;
-
-        if (empty($_POST['name']) or $_POST['name'] == $file['name']) {
-
-            $name = end(explode('/', $file['url']));
-
-        } else {
-
-            $name = $_POST['name'];
-
-            $dir = __FILES_PATH . '/posts/files_upload';
-
-            $filename = basename($file['url']);
-
-            $ext = getExt($filename);
-
-            if (preg_match('/'.$ext.'$/is', $_POST['name'])) {
-
-                $_POST['name'] = preg_replace('/'.$ext.'$/is', '', $_POST['name']);
-            }
-
-            $new_name = $seo->url($_POST['name']);
-
-            $new_name = $new_name . '-' . time() . '.' . $ext;
-
-            /**
-             * get sub directory
-             */
-            $listHash =  explode('/', $file['url']);
-            $num = count($listHash);
-            $timeDir = $listHash[$num - 2];
-            $new_url = $timeDir . '/' . $new_name;
-
-            $old_file = $file['full_path'];
-
-            $new_file = $dir . '/' . $new_url;
-
-            $rename = @rename($old_file, $new_file);
-        }
-
-        $update['name'] = h($name);
-
-        if ($rename) {
-
-            if (!empty($new_url)) {
-
-                $update['url'] = $new_url;
-            }
-            if (!empty($new_file)) {
-
-                $update['size'] = @filesize($new_file);
-            }
-
-            if (!$model->update_file($file['id'], $update)) {
-
-                $registry->hook->upload_error[] = 'Lỗi dữ liệu';
-
-                return false;
-
-            } else {
-
-                return true;
-            }
-
-        } else {
-
-            $msg = '';
-
-            if (preg_match('/^https?:\/\//is', $old_file)) {
-
-                $msg = 'do file này thuộc server khác<br/>' . $old_file;
-            }
-
-            $registry->hook->upload_error[] = 'Không thể đổi tên file ' . $msg;
-
-            return false;
-        }
-
-        return true;
-    }
 
     function delete_file($file) {
-
         global $registry;
-
         $model = $registry->model->get('blog');
-
         if (@unlink($file['full_path']) || !file_exists($file['full_path'])) {
-
             if ($model->delete_file($file['id'])) {
-
                 return true;
-
-            } else {
-
-                return false;
-            }
+            } else return false;
         }
-
         return false;
     }
 
 
     function upload_image($sid) {
-
         global $registry;
         /**
          * get blog model
@@ -582,7 +287,7 @@ class blogHook extends ZenHook
 
         $upload->upload_path = $dir . '/' . $subdir;
 
-        if (isset($_GET['remote'])) {
+        if (ZenInput::get('remote')) {
 
             $uploaded_files = $upload->multiple('link', TEXT_INPUT);
         } else {

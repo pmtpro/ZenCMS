@@ -1,0 +1,7 @@
+search/
+search/map/
+search/map/search.map.php
+search/search.info
+search/searchController.php
+search/searchModel.php
+search/searchSettings.php

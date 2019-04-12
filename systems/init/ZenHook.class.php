@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -109,7 +109,7 @@ class ZenHook
                     return $this->call($name, $data, $options);
                 } else {
                     $this->result[$this->module][$name] = $data;
-                    if ($options['return_everywhere'] == true) {
+                    if (isset($options['return_everywhere']) && $options['return_everywhere'] == true) {
                         return $data;
                     }
                 }
@@ -122,7 +122,7 @@ class ZenHook
      * @param $name
      * @param bool $data
      * @param array $options
-     * @return bool|mixed|string
+     * @return bool|mixed
      */
     public function call($name, $data = false, $options = array('protected' => false, 'end_callback' => null, 'var' => null))
     {

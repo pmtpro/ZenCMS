@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,16 +16,22 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 /**
  * define home url
  */
-define('HOME', get_home_url());
+define('HOME', getHttpHost());
+/**
+ * define real home url
+ */
+define('REAL_HOME', real_home());
+
+define('ZENCMS_VERSION', '6.0.0');
 
 function update_key($key, $value) {
     global $db;
@@ -38,25 +44,73 @@ function update_key($key, $value) {
     return $db->query("UPDATE `zen_cms_config` SET `value`='$value' WHERE `key`='$key'");
 }
 
+function workDir() {
+    $request = trim(dirname($_SERVER["PHP_SELF"]),'/');
+    $request = trim($request,"\\");
+    if (strpos($request, '/') !== false) {
+        $hash_request = explode('/', $request);
+        /**
+         * move pointer to last element
+         */
+        end($hash_request);
+        /**
+         * get las key of $hash_home
+         */
+        $last_key = key($hash_request);
+        unset($hash_request[$last_key]);
+        return implode('/', $hash_request);
+    } else return '';
+}
 
-function get_home_url(){
-    $scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
+function getHttpHost() {
+    static $_static_function;
+    if (isset($_static_function['getHttpHost'])) {
+        return $_static_function['getHttpHost'];
+    }
+    $scheme = (isset($_SERVER['HTTPS']) && ($_SERVER['SERVER_PORT'] == '443')) ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    $home = sprintf('%s://%s/', $scheme, $host);
-    $home = trim($home, '/');
+    $request = trim(dirname($_SERVER["PHP_SELF"]),'/');
+    $request = trim($request,"\\");
+    $home = sprintf('%s://%s/%s', $scheme, $host, $request);
+    $home = rtrim($home, '/');
+    $_static_function['getHttpHost'] = $home;
     return $home;
 }
+
+function real_home() {
+    static $_static_function;
+    if (isset($_static_function['real_home'])) {
+        return $_static_function['real_home'];
+    }
+    $currHome = getHttpHost();
+    $hash_home = explode('/', $currHome);
+    if (count($hash_home) != 3) {
+        /**
+         * move pointer to last element
+         */
+        end($hash_home);
+        /**
+         * get las key of $hash_home
+         */
+        $last_key = key($hash_home);
+        unset($hash_home[$last_key]);
+        $home = rtrim(implode('/', $hash_home), '/');
+    } else $home = $currHome;
+    $_static_function['real_home'] = $home;
+    return $home;
+}
+
 
 function load_message() {
     global $data;
     if (isset ($data['errors'])) {
-        echo '<div class="alert alert-error">
+        echo '<div class="alert alert-danger">
   <button type="button" class="close" data-dismiss="alert">×</button>
   <strong>Lỗi:</strong> ' . $data['errors'] . '
 </div>';
     }
     if (isset ($data['notices'])) {
-        echo '<div class="alert alert-block">
+        echo '<div class="alert alert-warning">
   <button type="button" class="close" data-dismiss="alert">×</button>
   <strong>Chú ý:</strong> ' . $data['notices'] . '
 </div>';
@@ -67,6 +121,67 @@ function load_message() {
   ' . $data['success'] . '
 </div>';
     }
+}
+
+function load_step($active = 1) {
+    echo '<ul class="nav nav-pills nav-justified steps">
+    <li ' . ($active == 1 ?  'class="active"' : ($active > 1 ? 'class="done"' : '')) . '>
+        <a href="#tab1" data-toggle="tab" class="step">
+                    <span class="number">
+                    1 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Điều khoản sử dụng </span>
+        </a>
+    </li>
+    <li ' . ($active == 2 ?  'class="active"' : ($active > 2 ? 'class="done"' : '')) . '>
+        <a href="#tab2" data-toggle="tab" class="step">
+                    <span class="number">
+                    2 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Kiểm tra hệ thống </span>
+        </a>
+    </li>
+    <li ' . ($active == 3 ?  'class="active"' : ($active > 3 ? 'class="done"' : '')) . '>
+        <a href="#tab3" data-toggle="tab" class="step">
+                    <span class="number">
+                    3 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Lựa chọn cài đặt </span>
+        </a>
+    </li>
+    <li ' . ($active == 4 ?  'class="active"' : ($active > 4 ? 'class="done"' : '')) . '>
+        <a href="#tab4" data-toggle="tab" class="step">
+                    <span class="number">
+                    4 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Cài đặt Database </span>
+        </a>
+    </li>
+    <li ' . ($active == 5 ?  'class="active"' : ($active > 5 ? 'class="done"' : '')) . '>
+        <a href="#tab5" data-toggle="tab" class="step">
+                    <span class="number">
+                    5 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Tùy chỉnh database </span>
+        </a>
+    </li>
+    <li ' . ($active == 6 ?  'class="active"' : ($active > 6 ? 'class="done"' : '')) . '>
+        <a href="#tab5" data-toggle="tab" class="step">
+                    <span class="number">
+                    6 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Cấu hình chính </span>
+        </a>
+    </li>
+    <li ' . ($active == 7 ?  'class="active"' : ($active > 7 ? 'class="done"' : '')) . '>
+        <a href="#tab6" data-toggle="tab" class="step">
+                    <span class="number">
+                    7 </span>
+                    <span class="desc">
+                    <i class="fa fa-check"></i> Hoàn thành </span>
+        </a>
+    </li>
+</ul>';
 }
 
 if (!function_exists('redirect')) {

@@ -1,7 +1,7 @@
 <?php
 /**
  * ZenCMS Software
- * Copyright 2012-2014 ZenThang
+ * Copyright 2012-2014 ZenThang, ZenCMS Team
  * All Rights Reserved.
  *
  * This file is part of ZenCMS.
@@ -16,9 +16,9 @@
  * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @package ZenCMS
- * @copyright 2012-2014 ZenThang
+ * @copyright 2012-2014 ZenThang, ZenCMS Team
  * @author ZenThang
- * @email thangangle@yahoo.com
+ * @email info@zencms.vn
  * @link http://zencms.vn/ ZenCMS
  * @license http://www.gnu.org/licenses/ or read more license.txt
  */
@@ -63,9 +63,7 @@ if (!function_exists('get_date_time')) {
         if (!$timeline) {
             $timeline = time();
         }
-        $timezone = sysConfig('timezone');
-        $timeline = $timeline + $timezone * 3600;
-        $current = time() + $timezone * 3600;
+        $current = time();
         if (!empty($options['date_format'])) {
             $date_format = $options['date_format'];
         } else {
@@ -77,19 +75,19 @@ if (!function_exists('get_date_time')) {
             $time_format = sysConfig('time_format');
         }
         if ($type == 'date') {
-            return gmdate($date_format, $timeline);
+            return date($date_format, $timeline);
         } elseif ($type == 'date-time') {
-            return gmdate($date_format . ' ' . $time_format, $timeline);
+            return date($date_format . ' ' . $time_format, $timeline);
         } else {
-            if (gmdate("j", $timeline) == gmdate("j", $current)) {
-                return 'Hôm nay, ' . gmdate($time_format, $timeline);
-            } elseif (gmdate("j", $timeline) == gmdate("j", ($current - 3600 * 24))) {
-                return 'Hôm qua, ' . gmdate($time_format, $timeline);
+            if (date("j", $timeline) == date("j", $current)) {
+                return 'Hôm nay, ' . date($time_format, $timeline);
+            } elseif (date("j", $timeline) == date("j", ($current - 3600 * 24))) {
+                return 'Hôm qua, ' . date($time_format, $timeline);
             }
             if (isset($options['display_all']) && $options['display_all'] == true) {
-                return gmdate($date_format . ', ' . $time_format, $timeline);
+                return date($date_format . ', ' . $time_format, $timeline);
             }
-            return gmdate($date_format, $timeline);
+            return date($date_format, $timeline);
         }
     }
 }
@@ -118,4 +116,24 @@ if (!function_exists('ezDate')) {
         return $val;
     }
 
+}
+
+
+if (!function_exists('tz_list')) {
+    /**
+     * Timezones list with GMT offset
+     *
+     * @return array
+     */
+    function tz_list() {
+        $zones_array = array();
+        $timestamp = time();
+        $tzList = timezone_identifiers_list();
+        foreach($tzList as $key => $zone) {
+            date_default_timezone_set($zone);
+            $zones_array[$key]['zone'] = $zone;
+            $zones_array[$key]['diff_from_GMT'] = 'UTC/GMT ' . date('P', $timestamp);
+        }
+        return $zones_array;
+    }
 }
