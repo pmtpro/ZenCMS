@@ -1,0 +1,13 @@
+RewriteEngine on
+# Đường dẫn chính của thư mục làm việc
+# Ví dụ: http://localhost/ => RewriteBase /
+# Nếu thư mục làm việc là http://localhost/zencms/ => RewriteBase /zencms/
+RewriteBase /
+RewriteRule ^files\/(.*)\.php$ download/get?_file_=$1.php [L,QSA]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !/index.php$
+RewriteRule ^(.*)$ index.php?_zen_router_=$1 [L,QSA]
+# Ban ip
+order allow,deny
+allow from all
