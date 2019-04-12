@@ -1,69 +1,61 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 /**
- * set form cache
- *
+ * this function will auto save form value
  * @param $name
- * @return bool
+ * @param bool $timeSave: false is forever
  */
-function sFormCache($name)
+function formCacheSave($name, $timeSave = false)
 {
-
-    if (empty ($name)) {
-        return;
-    }
-
-    if (!defined('__MODULE_NAME')) {
-        return;
-    }
+    if (empty($name))  return;
+    if (!defined('MODULE_NAME')) return;
     if (isset($_POST[$name])) {
-
         $out = $_POST[$name];
-    } else {
-
-        $out = false;
-    }
-
-    $_SESSION['formCache'][__MODULE_NAME][$name] = $out;
+    } else $out = false;
+    if (!$timeSave) {
+        $time = time() + 356*24*60*60;
+    } else $time = time() + $timeSave;
+    setcookie("helper[formCache][" . MODULE_NAME . "][$name]", $out, $time);
 }
 
 /**
- * gform cache
- *
+ * this function will return the value of form input by name
  * @param $name
- * @param string $return
- * @return bool|string
+ * @param bool $return
+ * @return bool
  */
-function gFormCache($name, $return = false)
+function formCacheGet($name, $return = false)
 {
-
-    if (empty ($name)) {
-        return false;
-    }
-
-    if (!defined('__MODULE_NAME')) {
-
-        return false;
-    }
-
-    if (isset ($_SESSION['formCache'][__MODULE_NAME][$name]) && !empty ($_SESSION['formCache'][__MODULE_NAME][$name])) {
-
-        if ($return == false) {
-
-            return $_SESSION['formCache'][__MODULE_NAME][$name];
-        }
+    if (empty ($name)) return false;
+    if (!defined('MODULE_NAME')) return false;
+    if ($return && !empty($_COOKIE['helper']['formCache'][MODULE_NAME][$name])) {
         return $return;
     }
+    if (isset($_COOKIE['helper']['formCache'][MODULE_NAME][$name])) {
+        return $_COOKIE['helper']['formCache'][MODULE_NAME][$name];
+    }
 }
-
-?>

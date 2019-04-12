@@ -345,13 +345,13 @@ class PHPMailer {
       //$this->Debugoutput = "html"; // Lỗi trả về hiển thị với cấu trúc HTML
       $this->do_debug = 0;
       $this->CharSet = "UTF-8";
-      $this->Host = get_config('mail_host'); //host smtp để gửi mail
-      $this->Port = get_config('mail_port'); // cổng để gửi mail
-      $this->SMTPSecure = get_config('mail_smtp_secure'); //Phương thức mã hóa thư - ssl hoặc tls
-      $this->SMTPAuth = get_config('mail_smtp_auth'); //Xác thực SMTP
-      $this->Username = get_config('mail_username'); // Tên đăng nhập tài khoản Gmail
-      $this->Password = base64_decode(get_config('mail_password')); //Mật khẩu của gmail
-      $this->SetFrom(get_config('mail_setfrom'), get_config('mail_name')); // Thông tin người gửi
+      $this->Host = dbConfig('mail_host'); //host smtp để gửi mail
+      $this->Port = dbConfig('mail_port'); // cổng để gửi mail
+      $this->SMTPSecure = dbConfig('mail_smtp_secure'); //Phương thức mã hóa thư - ssl hoặc tls
+      $this->SMTPAuth = dbConfig('mail_smtp_auth'); //Xác thực SMTP
+      $this->Username = dbConfig('mail_username'); // Tên đăng nhập tài khoản Gmail
+      $this->Password = base64_decode(dbConfig('mail_password')); //Mật khẩu của gmail
+      $this->SetFrom(dbConfig('mail_setfrom'), dbConfig('mail_name')); // Thông tin người gửi
       //$this->AddReplyTo("no-reply@example.com", "Test Reply"); // Ấn định email sẽ nhận khi người dùng reply lại.
   }
 

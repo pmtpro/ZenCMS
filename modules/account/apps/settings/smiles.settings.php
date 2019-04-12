@@ -1,56 +1,82 @@
 <?php
 /**
  * name = Smiles
- * icon = smiles
+ * icon = fa fa-smile-o
  */
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
-$data['page_title'] = 'Smiles';
+
 $security = load_library('security');
 $p = load_library('pagination');
+$obj->hook->get('account');
 $model = $obj->model->get('account');
 $user = $obj->user;
-$tree[] = url(_HOME . '/account', 'Tài khoản');
-$tree[] = url(_HOME . '/account/settings', 'Cài đặt');
+if (!is_array($user['smiles'])) $user['smiles'] = array();
 
+ZenView::set_title('Danh sách smile');
+$tree[] = url(HOME . '/account', 'Tài khoản');
+$tree[] = url(HOME . '/account/settings', 'Cài đặt');
+ZenView::set_breadcrumb($tree);
 
-if (isset($_POST['sub_add'])) {
+/**
+ * add smile
+ */
+if (isset($_POST['submit-add'])) {
 
-    if (count($user['smiles']) >= 20) {
-
-        $data['notices'] = 'Nhiều smile phết rồi đấy';
-
-    } else {
-
-        $arr_smiles = $_POST['smile'];
-
-        $arr_smiles = array_merge($user['smiles'], $arr_smiles);
-
-        $arr_smiles = array_unique($arr_smiles);
-
-        $update['smiles'] = serialize($arr_smiles);
-
-        if ($model->update_user($user['id'], $update)) {
-
-            $data['success'] = 'Thành công';
-            $user = _reload_user_data();
+    $arr_smiles = $_POST['smile'];
+    if (is_array($arr_smiles)) {
+        /**
+         * settings_max_user_smile hook*
+         */
+        $num = $obj->hook->loader('settings_max_user_smile', 20);
+        if (count($user['smiles']) + count($arr_smiles) >= $num) {
+            ZenView::set_notice('Nhiều smile phết rồi đấy');
         } else {
-            $data['errors'] = 'Lỗi ghi dữ liệu';
+            $arr_smiles = array_merge($user['smiles'], $arr_smiles);
+            $arr_smiles = array_unique($arr_smiles);
+            $update['smiles'] = serialize($arr_smiles);
+            if ($model->update_user($user['id'], $update)) {
+                ZenView::set_success(1);
+                $user = _reload_user_data();
+            } else ZenView::set_error('Lỗi ghi dữ liệu');
         }
     }
 }
 
-$data['user'] = $user;
+/**
+ * set sub menu
+ */
+ZenView::add_menu('app', ZenView::gen_menu(array(
+    'full_url' => HOME . '/account/settings/my_smile',
+    'name' => 'My smile',
+    'icon' => 'fa fa-smile-o',
+    'badge' => count($user['smiles'])
+)), true);
 
+$data['user'] = $user;
 $data['count_my_smiles'] = count($user['smiles']);
 
 $folder = '';
@@ -58,42 +84,36 @@ if (isset($app[1])) {
     $folder = $security->cleanXSS($app[1]);
 }
 
-$path = __FILES_PATH . '/images/smiles/' . $folder;
-$base = _HOME . '/files/images/smiles/' . $folder;
+$path = __FILES_PATH . '/systems/images/smiles/' . $folder;
+$base = HOME . '/files/systems/images/smiles/' . $folder;
 
 $ignored = array('.', '..', '.svn', '.htaccess', '_basic');
 
 if (is_dir($path) && is_readable($path)) {
     $lists = scandir($path);
-} else {
-    $lists = array();
-}
+} else $lists = array();
 
 if (empty($folder)) {
-
-    $cats = array();
+    $folders = array();
     foreach ($lists as $li) {
         if (is_dir($path . $li) && !in_array($li, $ignored)) {
-            $cats[] = $li;
+            $folders[] = array(
+                'name' => $li,
+                'full_url' => HOME . '/account/settings/smiles/' . $li
+            );
         }
     }
-    $data['cats'] = $cats;
-    $data['display_tree'] = display_tree($tree);
+    $data['folders'] = $folders;
     $obj->view->data = $data;
-    $obj->view->show('account/settings/smiles/smiles_folder');
-
+    $obj->view->show('account/settings/smiles/folder');
 } else {
-
-    if (!in_array($folder, $ignored)) {
-
+    if (in_array($folder, $ignored)) {
+        ZenView::set_error('Lỗi dữ liệu. Vui lòng thử lại!');
+    } else {
         $smiles = array();
-
         $total = count($lists);
-
         for ($i = 1; $i <= count($lists); $i++) {
-
             if (isset($lists[$i])) {
-
                 if (!is_file($path . '/' . $lists[$i]) || in_array($lists[$i], $ignored)) {
                     $total--;
                 }
@@ -109,34 +129,24 @@ if (empty($folder)) {
         $end = $start + $limit;
         $p->setTotal($total);
 
-        $data['smiles_pagination'] = $p->navi_page();
+        ZenView::set_paging($p->navi_page());
 
         for ($i = $start; $i < $end; $i++) {
-
             if (isset($lists[$i])) {
-
                 if (is_file($path . '/' . $lists[$i]) && !in_array($lists[$i], $ignored)) {
-
-                    $key = ':' . preg_replace('/\.' . get_ext($lists[$i]) . '$/', '', $lists[$i]) . ':';
-                    $smiles[$key] = $base . '/' . $lists[$i];
+                    $key = ':' . preg_replace('/\.' . getExt($lists[$i]) . '$/', '', $lists[$i]) . ':';
+                    $smiles[] = array(
+                        'key' => $key,
+                        'name' => $lists[$i],
+                        'full_url' => $base . '/' . $lists[$i],
+                        'added' => in_array($key, $user['smiles'])? true: false
+                    );
                 }
             }
         }
-
         $data['smiles'] = $smiles;
-        $tree[] = url(_HOME . '/account/settings/smiles', 'Smiles');
-        $data['display_tree'] = display_tree($tree);
-        $obj->view->data = $data;
-        $obj->view->show('account/settings/smiles/smiles_list');
-
-    } else {
-        $data['errors'] = 'Lỗi dữ liệu';
-        $data['smiles_pagination'] = '';
-        $data['smiles'] = array();
-        $tree[] = url(_HOME . '/account/settings/smiles', 'Smiles');
-        $data['display_tree'] = display_tree($tree);
-        $obj->view->data = $data;
-        $obj->view->show('account/settings/smiles/smiles_list');
     }
+    ZenView::set_breadcrumb(url(HOME . '/account/settings/smiles', 'Danh sách thư mục'));
+    $obj->view->data = $data;
+    $obj->view->show('account/settings/smiles/list');
 }
-?>

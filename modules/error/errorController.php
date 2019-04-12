@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -39,7 +53,7 @@ Class errorController Extends ZenController
                 $error_name = 'Sorry, This file has been deleted by the manager';
                 break;
 
-            case 505:
+            case 503:
                 $error_name = 'Access denied';
                 break;
 
@@ -52,7 +66,7 @@ Class errorController Extends ZenController
                 break;
 
             case 600:
-                $error_name = 'You need verify access';
+                $error_name = 'Nhập mật khẩu cấp 2';
                 break;
 
             default:
@@ -65,6 +79,10 @@ Class errorController Extends ZenController
 
             case 1001:
                 $error_name = 'Template file does not exists';
+                break;
+
+            case 1005:
+                $error_name = 'Map file does not exists';
                 break;
 
             case 2000:
@@ -85,29 +103,29 @@ Class errorController Extends ZenController
         }
 
         if ($num_error == 600) {
-
-            $this->view->data['notices'][] = 'Bạn cần nhập mã xác thực truy cập (Được cung cấp khi bạn cài đặt code hoặc xem trong file ZenPRIVATE.php)';
-            $this->view->data['page_title'] = $error_name;
-            $this->view->show('error/verify_access');
+            ZenView::set_notice('Bạn cần nhập mật khẩu cấp 2.<br/>Được cung cấp khi bạn cài đặt code hoặc xem trong file <strong>ZenPRIVATE.php</strong>');
+            ZenView::set_title($error_name);
+            $this->view->show('error/verify_access', array('only_map' => true));
             return;
         }
 
         if (empty($_SERVER['HTTP_REFERER'])) {
-            $url = _HOME;
+            $url = HOME;
             $msg = 'trang chủ';
         } else {
             $url = $_SERVER['HTTP_REFERER'];
             $msg = 'trang trước';
         }
         //$this->view->data['notices'][] = wait_redirect($url, 'Bạn sẽ được chuyển đến ' . $msg . ' trong vòng {s} nữa', 3);
-        $this->view->data['errors'][] = $error_name;
-        $this->view->data['page_title'] = 'Error ' . $num_error;
-        $this->view->show('error');
+        ZenView::set_error($error_name);
+        ZenView::set_title('Error ' . $num_error);
+        $this->view->data['error_name'] = $error_name;
+        $this->view->data['error_number'] = $num_error;
+        $this->view->show('error', array('only_map' => true));
     }
 
     public function setSpecialMsg($msg) {
 
         $this->msg = $msg;
     }
-
 }

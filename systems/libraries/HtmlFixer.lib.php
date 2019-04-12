@@ -1,13 +1,4 @@
 <?php
-/**
- * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
- * All Rights Reserved.
- */
 // -------------------------------------------------
 // HTML FIXER v.2.05 15/07/2010
 // clean dirty html and make it better, fix open tags

@@ -1,55 +1,37 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 /**
- * auto load classes
- *
- * @param string $class_name
- * @return boolean
- */
-function __autoload($class_name)
-{
-    $filename = strtolower($class_name) . '.lib.php';
-
-    $file = __SITE_PATH . '/systems/libraries/' . $filename;
-
-    if (file_exists($file) == false) {
-        return false;
-    }
-    include_once($file);
-}
-
-
-/**
- *
  * get table prefix
- *
  * @return string
  */
 if (!function_exists('tb')) {
-
-    function tb()
-    {
-        global $system_config;
-
-        static $_table_prefix;
-
-        if (isset($_table_prefix)) {
-
-            return $_table_prefix;
-        }
-        $_table_prefix = $system_config['table_prefix'];
-
-        return $system_config['table_prefix'];
+    function tb() {
+        global $zen;
+        return $zen['config']['table_prefix'];
     }
 }
 
@@ -60,53 +42,399 @@ if (!function_exists('tb')) {
  * @return string
  */
 if (!function_exists('home')) {
+    function home() {
+        global $zen;
+        if (isset($zen['config']['fromDB']['home'])) {
+            return $zen['config']['fromDB']['home'];
+        } else return getHttpHost();
+    }
+}
 
-    function home()
-    {
-        global $system_config;
+/**
+ * get current router
+ */
+if (!function_exists('getRouter')) {
+    function getRouter() {
+        if (defined('ROUTER')) {
+            return ROUTER;
+        } else return '';
+    }
+}
 
-        static $_home;
-
-        if (isset($_home)) {
-
-            return $_home;
-        }
-
-        if (isset($system_config['from_db']['home'])) {
-
-            $_home = $system_config['from_db']['home'];
-
-            return $system_config['from_db']['home'];
-
+/**
+ * get router url
+ */
+if (!function_exists('getRouterUrl')) {
+    function getRouterUrl() {
+        if (defined('ROUTER')) {
+            return HOME . '/' . ROUTER;
         } else {
+            $curUrl = curPageURL();
+            $hash = explode('?', $curUrl);
+            if (isset($hash[0])) {
+                return $hash[0];
+            } else {
+                return $curUrl;
+            }
+        }
+    }
+}
 
-            return get_http_host();
+
+/**
+ * get current page url
+ * @return bool|string
+ */
+if (!function_exists('curPageURL')) {
+
+    function curPageURL() {
+        $pageURL = 'http';
+        if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on") {
+            $pageURL .= "s";
+        }
+        $pageURL .= "://";
+        if ($_SERVER["SERVER_PORT"] != "80") {
+            $pageURL .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
+        } else {
+            $pageURL .= $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+        }
+        return $pageURL;
+    }
+}
+
+if (!function_exists('curBaseURL')) {
+    function curBaseURL($url = false) {
+        static $_static_function;
+        if (!empty($url)) {
+            $_static_function['curBaseURL'] = $url;
+        }
+        if (isset($_static_function['curBaseURL'])) {
+            return $_static_function['curBaseURL'];
+        }
+        return '';
+    }
+}
+
+/**
+ * gen url for extend app. ex: http://localhost/admin/general/modulescp?appFollow=blog/manager
+ * @param string $router
+ * @return string
+ */
+if (!function_exists('genUrlAppFollow')) {
+    function genUrlAppFollow($router) {
+        return REAL_HOME . '/admin/general/modulescp?appFollow=' . $router;
+    }
+}
+
+/**
+ * this function will return TRUE if request executed by ajax jquery.
+ * @return bool
+ */
+if (!function_exists('is_ajax_request')) {
+
+    function is_ajax_request($field = 'is-ajax-request') {
+        if (empty($field)) $field = 'is-ajax-request';
+        if (isset($_POST[$field]) || isset($_GET[$field])) {
+            return true;
+        }
+        return false;
+    }
+}
+
+
+/**
+ * generate request address. Default is md5(USER_IP-USER_AGENT);
+ * @return string
+ */
+if (!function_exists('genRequestAddress')) {
+
+    function genRequestAddress() {
+        return md5(client_ip() . '-' . client_user_agent());
+    }
+}
+
+/**
+ * generate token for a ajax request or other
+ * @return string mixed
+ */
+if (!function_exists('genRequestToken')) {
+
+    function genRequestToken() {
+        $token_address = genRequestAddress();
+        if (empty($_SESSION['ZENSS_REQUEST_TOKEN'][$token_address])) {
+            $_SESSION['ZENSS_REQUEST_TOKEN'][$token_address] = md5(randStr(10));
+        }
+        return $_SESSION['ZENSS_REQUEST_TOKEN'][$token_address];
+    }
+}
+
+/**
+ * get token of a request
+ * @return mixed
+ */
+if (!function_exists('getRequestToken')) {
+
+    function getRequestToken() {
+        return $_SESSION['ZENSS_REQUEST_TOKEN'][genRequestAddress()];
+    }
+}
+
+/**
+ * check a valid of request
+ * @param $val
+ * @return bool
+ */
+if (!function_exists('confirmRequest')) {
+
+    function confirmRequest($val) {
+        $token_address = genRequestAddress();
+        if (isset($_SESSION['ZENSS_REQUEST_TOKEN'][$token_address]) && $_SESSION['ZENSS_REQUEST_TOKEN'][$token_address] == $val) {
+            return true;
+        }
+        return false;
+    }
+}
+
+/**
+ * generate a session for login
+ * @param $data_user
+ * @param int $cookie_time
+ */
+if (!function_exists('_gen_session_login')) {
+
+    function _gen_session_login($data_user, $cookie_time = 0) {
+        $user_id_code = $data_user['id'] + ZEN_WORKID;
+        $_SESSION['ZENSS_USER_ID'] = base64_encode($user_id_code);
+        $_SESSION['ZENSS_LOGIN_TOKEN'] = md5($data_user['password']);
+        genRequestToken();
+        if (is_numeric($cookie_time) && $cookie_time != 0) {
+            setcookie('ZENCK_USER_ID', $_SESSION['ZENSS_USER_ID'], time() + $cookie_time, "/");
+            setcookie('ZENCK_LOGIN_TOKEN', $_SESSION['ZENSS_LOGIN_TOKEN'], time() + $cookie_time, "/");
         }
     }
 }
 
 /**
- * return http host
- *
+ * decode user id
+ * @param $user_id_code
  * @return string
  */
-if (!function_exists('get_http_host')) {
+if (!function_exists('_decode_user_id')) {
 
-    function get_http_host()
-    {
-
-        $scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
-
-        $host = $_SERVER['HTTP_HOST'];
-
-        $home = sprintf('%s://%s/', $scheme, $host);
-
-        $home = rtrim($home, '/');
-
-        return $home;
+    function _decode_user_id($user_id_code) {
+        return base64_decode($user_id_code) - ZEN_WORKID;
     }
 }
 
+/**
+ * generate login token
+ * @return string
+ */
+if (!function_exists('_gen_login_token')) {
+
+    function _gen_login_token() {
+        return md5(client_ip() . '-' . client_user_agent());
+    }
+}
+
+if (!function_exists('_clean_user_data_log')) {
+    function _clean_user_data_log()
+    {
+        global $registry;
+        if (isset($_SESSION['ZENSS_USER_ID']))
+            unset($_SESSION['ZENSS_USER_ID']);
+        if (isset($_SESSION['ZENSS_LOGIN_TOKEN']))
+            unset($_SESSION['ZENSS_LOGIN_TOKEN']);
+        if (isset($_COOKIE['ZENCK_USER_ID']))
+            unset($_COOKIE['ZENCK_USER_ID']);
+        if (isset($_COOKIE['ZENCK_LOGIN_TOKEN']))
+            unset($_COOKIE['ZENCK_LOGIN_TOKEN']);
+        unset($registry->user);
+    }
+}
+
+/**
+ * reload user data
+ * @param int $uid
+ * @return bool
+ */
+if (!function_exists('_reload_user_data')) {
+
+    function _reload_user_data($uid = 0)
+    {
+        global $registry;
+        if (empty($uid)) $uid = $registry->user['id'];
+        return _load_user($uid);
+    }
+}
+
+/**
+ * load the use data
+ *
+ * @param $uid
+ * @return bool
+ */
+if (!function_exists('_load_user')) {
+
+    function _load_user($uid)
+    {
+        global $registry;
+        $query = $registry->db->query("SELECT * FROM " . tb() . "users where id='$uid'");
+        if ($registry->db->num_row($query) == 1) {
+            $row = $registry->db->fetch_array($query);
+            $row = _handle_user_data($row);
+            return $registry->db->sqlQuoteRm($row);
+        }
+        return false;
+    }
+}
+
+/**
+ * update login
+ * update time login
+ * update last ip login
+ *
+ * @param $uid
+ */
+if (!function_exists('_update_login')) {
+
+    function _update_login($uid)
+    {
+        global $registry;
+        $registry->db->query("UPDATE " . tb() . "users SET
+        `last_login`='" . time() . "',
+        `last_ip` = '" . client_ip() . "' where `id`='$uid'");
+    }
+}
+
+/**
+ * @param $data
+ * @return mixed
+ */
+if (!function_exists('_handle_user_data')) {
+
+    function _handle_user_data($data) {
+        $u = $data;
+        if (isset($data['avatar'])) {
+            $u['full_avatar'] = $data['avatar'] ? _URL_FILES . '/account/avatars/' . $data['avatar'] : _URL_FILES_SYSTEMS . '/images/default/avatar.png';
+        }
+        if (isset($u['birth'])) {
+            $u['birth'] = (int) $u['birth'];
+        }
+        if (isset($u['security_code'])) {
+            $u['security_code'] = unserialize($u['security_code']);
+        }
+        if (isset($u['smiles'])) {
+            $u['smiles'] = unserialize($u['smiles']);
+        }
+        return $u;
+    }
+}
+
+/**
+ * @param $uid
+ * @param string $name
+ * @return bool
+ */
+if (!function_exists('still_valid_security_code')) {
+
+    function still_valid_security_code($uid, $name = '')
+    {
+        global $registry;
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        if (empty($uid)) {
+            return false;
+        }
+        $user = $registry->model->get('account')->get_user_data($uid);
+        if (!empty($user)) {
+            if (isset($user['security_code'][$name])) {
+                if (empty($user['security_code'][$name]['time_expired']) || empty($user['security_code'][$name]['time_start'])) {
+                    return true;
+                } else {
+                    if (time() - $user['security_code'][$name]['time_start'] > $user['security_code'][$name]['time_expired']) {
+                        return false;
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+}
+
+/**
+ * @param $uid
+ * @param $name
+ * @param $value
+ * @param bool $expired
+ * @return bool
+ */
+if (!function_exists('set_security_code')) {
+
+    function set_security_code($uid, $name, $value, $expired = false)
+    {
+        global $registry;
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        if (empty($name) || empty($uid) || empty($value)) {
+            return false;
+        }
+        $user = $registry->model->get('account')->get_user_data($uid);
+        if (empty($user)) {
+            return false;
+        }
+        $data = $user['security_code'];
+        $arr['code'] = $value;
+        $arr['time_start'] = time();
+        $arr['time_expired'] = textToTime($expired);
+        $data[$name] = $arr;
+        $update['security_code'] = serialize($data);
+        if ($registry->model->_update_user($uid, $update)) {
+            return true;
+        }
+        return false;
+    }
+}
+
+
+/**
+ * return online status
+ * by default, time hold online is 180s (3m)
+ * @param $time
+ * @return bool
+ */
+if (!function_exists('is_online')) {
+
+    function is_online($time = 0, $timeHold = 180)
+    {
+        global $registry;
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        if (empty($time)) {
+            $time = $registry->user['last_login'];
+        }
+        $time = (int)$time;
+        if ($time > time()) return false;
+        if (empty($timeHold)) $timeHold = 180;//3m
+        $t = hook(ZPUBLIC, 'time_hold_online', $timeHold);
+        if (time() - $time > $t) return false;
+        return true;
+    }
+}
 
 /**
  *
@@ -121,111 +449,75 @@ if (!function_exists('get_http_host')) {
  */
 if (!function_exists('load_library')) {
 
-    function &load_library($class, $directory = 'libraries')
+    function &load_library($class, $options = array('directory' => 'libraries', 'module' => ''))
     {
         global $registry;
-
         static $_classes = array();
-
+        if (empty($options['directory'])) {
+            $options['directory'] = 'libraries';
+        }
         /**
          * Does the class exist?  If so, we're done...
          */
-        if (isset($_classes[$class])) {
-
-            return $_classes[$class];
+        if (isset($_classes['obj'][$class]) && $_classes['options'][$class] == $options) {
+            return $_classes['obj'][$class];
         }
-
         $name = FALSE;
+        $arr_inc = array(__SITE_PATH, __SITE_PATH . '/systems');
 
-        if (defined('__MODULE_PATH')) {
-
-            $arr_inc = array(__MODULE_PATH, __SITE_PATH, __SITE_PATH . '/systems');
-
+        if (!empty($options['module'])) {
+            $arr_inc = array_merge(array(__MODULES_PATH . '/' . $options['module']), $arr_inc);
         } else {
-
-            $arr_inc = array(__SITE_PATH, __SITE_PATH . '/systems');
+            if (defined('MODULE_DIR')) {
+                $arr_inc = array_merge(array(MODULE_DIR), $arr_inc);
+            }
         }
-
-        /**
-         * look libraries in background module
-         */
-        $mod = get_list_modules();
-
-        $bg_mod = $mod[BACKGROUND];
-
-        foreach ($bg_mod as $bg) {
-
-            $arr_inc[] = __MODULES_PATH . '/' . $bg;
-        }
-
         /**
          * Look for the class first in the module directory
          * then in the local libraries folder
          * end in the native system/libraries folder
          */
         foreach ($arr_inc as $path) {
-
             $file_name = $class . '.lib';
-
-            $path_class = $path . '/' . $directory . '/' . $file_name . '.php';
-
-            $path_sub_class = $path . '/' . $directory . '/' . $class . '/' . $file_name . '.php';
-
+            $path_class = $path . '/' . $options['directory'] . '/' . $file_name . '.php';
+            $path_sub_class = $path . '/' . $options['directory'] . '/' . $class . '/' . $file_name . '.php';
             if (file_exists($path_class)) {
-
                 $name = $class;
-
                 if (class_exists($name, false) === FALSE) {
-
                     require($path_class);
-
                 }
-
                 break;
-
             } else {
-
                 if (file_exists($path_sub_class)) {
-
                     $name = $class;
-
                     if (class_exists($name, false) === FALSE) {
-
                         require($path_sub_class);
                     }
-
                     break;
                 }
             }
         }
-
         /**
          * Did we find the class?
          */
         if ($name === FALSE) {
-
             $erro = debug_backtrace();
-
             show_error(505, 'Unable to locate the specified class: ' . $file_name . '.php in ' . $erro[0]['file'] . ' on line ' . $erro[0]['line']);
         }
-
         /**
          * Keep track of what we just loaded
          */
         is_loaded($class);
-
-        $object = new $name();
-
+        if (isset($options['init_data'])) {
+            $object = new $name($options['init_data']);
+        } else $object = new $name();
         if (method_exists($object, 'setRegistry')) {
-
             $object->setRegistry($registry);
         }
-
-        $_classes[$class] = $object;
-
-        return $_classes[$class];
+        $_classes['obj'][$class] = $object;
+        $_classes['options'][$class] = $options;
+        return $_classes['obj'][$class];
     }
-
 }
 
 // --------------------------------------------------------------------
@@ -242,15 +534,9 @@ if (!function_exists('is_loaded')) {
     function &is_loaded($class = '')
     {
         static $_is_loaded = array();
-
-        if ($class != '') {
-
-            $_is_loaded[strtolower($class)] = $class;
-        }
-
+        if ($class != '') $_is_loaded[strtolower($class)] = $class;
         return $_is_loaded;
     }
-
 }
 
 /**
@@ -262,47 +548,39 @@ if (!function_exists('is_loaded')) {
  */
 if (!function_exists('load_helper')) {
 
-    function load_helper($helper, $directory = 'helpers')
+    function load_helper($helper, $options = array('directory' => 'helpers', 'module' => ''))
     {
         global $registry;
-
-        $name = FALSE;
-
-        if (defined('__MODULE_PATH')) {
-
-            $arr_inc = array(__MODULE_PATH, __SITE_PATH, __SYSTEMS_PATH);
-
-        } else {
-
-            $arr_inc = array(__SITE_PATH, __SYSTEMS_PATH);
+        if (empty($options['directory'])) {
+            $options['directory'] = 'helpers';
         }
-
+        $name = FALSE;
+        $arr_inc = array(__SITE_PATH, __SYSTEMS_PATH);
+        if (!empty($options['module'])) {
+            $arr_inc = array_merge(array(__MODULES_PATH . '/' . $options['module']), $arr_inc);
+        } else {
+            if (defined('MODULE_DIR')) {
+                $arr_inc = array_merge(array(MODULE_DIR), $arr_inc);
+            }
+        }
         /**
          * Look for the helper first in the module directory
          * then in the local helpers folder
          * end in the native system/helpers folder
          */
         foreach ($arr_inc as $path) {
-
             $file_name = $helper . '.helper';
-
-            $path_helper = $path . '/' . $directory . '/' . $file_name . '.php';
-
+            $path_helper = $path . '/' . $options['directory'] . '/' . $file_name . '.php';
             if (file_exists($path_helper)) {
-
                 $name = $helper;
-
                 require_once($path_helper);
-
                 break;
             }
         }
-
         /**
          * Did we find the class?
          */
         if ($name === FALSE) {
-
             $erro = debug_backtrace();
             /**
              * show 505 error
@@ -327,38 +605,29 @@ if (!function_exists('load_apps')) {
     function load_apps($path, $apps)
     {
         global $app, $obj, $registry;
-
         /**
          * load security library
          */
         $security = load_library('security');
-
         $app = $apps;
         $obj = $registry;
 
         if (empty($apps[0])) {
-
             $apps[0] = 'index';
         }
-
         if (isset($apps[0])) {
-
+            $pos = strpos($path, __MODULES_PATH);
+            if (is_bool($pos) && $pos == false) {
+                $path = __MODULES_PATH . '/' . ltrim($path, '/');
+            }
             $app[0] = $security->cleanXSS($app[0]);
-
             $path = rtrim($path, '/');
-
             $foo_app = explode('/', $path);
-
             $parent_app = end($foo_app);
-
             $file = $path . '/' . $apps[0] . '.' . $parent_app . '.php';
-
             if (!file_exists($file)) {
-
                 show_error(404);
-
             } else {
-
                 include_once $file;
             }
         }
@@ -376,17 +645,19 @@ if (!function_exists('load_apps')) {
  */
 if (!function_exists('get_apps')) {
 
-    function get_apps($path, $router = __ROUTER, $both_index = false) {
-
+    function get_apps($path, $router = ROUTER, $both_index = false) {
+        /**
+         * check path.
+         */
+        $pos = strpos($path, __MODULES_PATH);
+        if (is_bool($pos) && $pos == false) {
+            $path = __MODULES_PATH . '/' . ltrim($path, '/');
+        }
         $menus = get_apps_from_path($path, $router, $both_index);
-
         $extend = get_extend_apps($router);
-
         if (!empty($extend) && is_array($extend)) {
-
             $menus = array_merge($menus, $extend);
         }
-
         return $menus;
     }
 }
@@ -397,50 +668,47 @@ if (!function_exists('get_apps')) {
  */
 if (!function_exists('get_extend_apps')) {
 
-    function get_extend_apps($path = false)
+    function get_extend_apps($router = false)
     {
-
         global $registry;
-
+        static $_static_function;
+        if (isset($_static_function['get_extend_apps'][$router])) {
+            return $_static_function['get_extend_apps'][$router];
+        }
+        /**
+         * set default icon
+         */
+        $default_icon = 'icon-flag';
         /**
          * load helper: fhandle
          */
         load_helper('fhandle');
-
         $arr_mods = scan_modules();
-
         $out = array();
 
         foreach ($arr_mods as $mod_name => $arr_info) {
-
             $blog_set = $registry->settings->get($mod_name);
-
             if (isset($blog_set->setting['extends']) && is_array($blog_set->setting['extends'])) {
-
                 foreach ($blog_set->setting['extends'] as $url => $extend) {
-
-                    if (isset($extend['router']) && $extend['router'] == $path) {
-
+                    if (isset($extend['router']) && $extend['router'] == $router) {
                         if (!isset($extend['name'])) {
-
                             $mod_title = $mod_name . ' (' . $url . ')';
-
                         } else {
-
                             $mod_title = $extend['name'];
                         }
-
-                        $mod['icon'] = isset($extend['icon']) ? $extend['icon'] : 'app';
+                        $mod['icon'] = isset($extend['icon']) ? $extend['icon'] : $default_icon;
                         $mod['name'] = $mod_title;
                         $mod['url'] = $url;
                         $mod['title'] = $mod_title;
-                        $mod['full_url'] = _HOME . '/' . $mod_name . '/' . $url;
+                        //$mod['full_url'] = HOME . '/' . $extend['router'] . '?appFollow=' . $mod_name . '/' . $url;
+                        $mod['full_url'] = genUrlAppFollow($mod_name . '/' . $url);
+                        $mod['full_extend_url'] = HOME . '/' . $extend['router'] . '?appFollow=' . $mod_name . '/' . $url;
                         $out[] = $mod;
                     }
                 }
             }
         }
-
+        $_static_function['get_extend_apps'][$router] = $out;
         return $out;
     }
 }
@@ -452,118 +720,150 @@ if (!function_exists('get_extend_apps')) {
  */
 if (!function_exists('get_apps_from_path')) {
 
-    function get_apps_from_path($path, $router = __ROUTER, $both_index = false)
+    function get_apps_from_path($path, $router, $both_index = false)
     {
         global $registry;
-
+        static $_static_function;
+        if (isset($_static_function['get_apps_from_path'][$path . '-' . $router . '-' . $both_index])) {
+           return $_static_function['get_apps_from_path'][$path . '-' . $router . '-' . $both_index];
+        }
         $obj = $registry;
         /**
          * load libraries
          */
         $parse = load_library('parse');
         $permission = load_library('permission');
-
-        $get = array();
-
         $tmp = array();
-
         $menus = array();
 
-        if (empty($router)) {
+        /**
+         * set default icon
+         */
+        $default_icon = 'icon-flag';
 
-            $router = __ROUTER;
-        }
+        $router = trim($router, '/');
+        $currRouter = getRouter();
+        $hash_router = explode('/', $router);
+        $router_action = trim(strstr($router, '/'), '/');
+        $modSet = $registry->settings->get($hash_router[0]);
+        if (!empty($modSet->setting['extends'][$router_action]) && $modSet->setting['extends'][$router_action]['router'] == $currRouter) {
+            $enable_url_follow = true;
+        } else $enable_url_follow = false;
 
         $list_path = explode('/', $path);
-
         $sub_name = end($list_path);
-
         $ignored = array('.', '..', '.svn', '.htaccess');
-
-        if ($both_index == true) {
-
-            $ignored[] = 'index.' . $sub_name . '.php';
-        }
+        if ($both_index == false) $ignored[] = 'index.' . $sub_name . '.php';
 
         $files = @scandir($path);
-
-        if (empty($files)) {
-
+        if (empty($files))
             return array();
 
-        }
-
-        foreach ($files as $k => $file) {
-
-            if (!in_array($file, $ignored)) {
-
-                $str = $parse->ini_php_file_comment($path . '/' . $file);
-
-                if (isset($str['name'])) {
-
-                    if (isset($str['position'])) {
-
-                        $pos = $str['position'];
-                    } else {
-                        $pos = 99999;
-                    }
-
-                    $tmp[$file] = $pos;
-
-                }
-
+        foreach ($files as $arr_key => $file) {
+            if (in_array($file, $ignored)) {
+                unset ($files[$arr_key]);
+                continue;
+            }
+            $file_path = $path . '/' . $file;
+            $is_file = is_file($file_path);
+            if ($is_file) {
+                $fist_file_getcmt = $file_path;
             } else {
-
-                unset ($files[$k]);
+                $fist_file_getcmt = $file_path . '/index.' . $file . '.php';
             }
-        }
-
-        asort($tmp);
-
-        $files = array_keys($tmp);
-
-        foreach ($files as $file) {
-
-            if (!in_array($file, $ignored)) {
-
-                $str = $parse->ini_php_file_comment($path . '/' . $file);
-
-                $url = str_replace('.' . $sub_name . '.php', '', $file);
-
-                if (isset($str['name'])) {
-
-                    if (isset($str['allow_access'])) {
-
-                        $lists_access = explode(',', $str['allow_access']);
-
-                        foreach ($lists_access as $key => $perm) {
-
-                            $lists_access[$key] = trim($perm);
-                        }
-
-                        if (in_array($obj->user['perm'], $lists_access) or $permission->is_admin()) {
-
-                            $get['name'] = $str['name'];
-                            $get['url'] = $url;
-                            $get['full_url'] = _HOME . '/' . $router . '/' . $url;
-                            $get['icon'] = isset($str['icon']) ? $str['icon'] : 'app';
-                        }
-
-                    } else {
-
-                        $get['name'] = $str['name'];
-                        $get['url'] = $url;
-                        $get['full_url'] = _HOME . '/' . $router . '/' . $url;
-                        $get['icon'] = isset($str['icon']) ? $str['icon'] : 'app';
+            if (!file_exists($fist_file_getcmt)) {
+                continue;
+            }
+            $ini_file_cmt = $parse->ini_php_file_comment($fist_file_getcmt);
+            if (is_array($ini_file_cmt)) {
+                $str[$file_path] = $ini_file_cmt;
+            }
+            if (isset($str[$file_path]['folder_name'])) {
+                $str[$file_path]['name'] = $str[$file_path]['folder_name'];
+            }
+            $str[$file_path]['url'] = str_replace('.' . $sub_name . '.php', '', $file);
+            $str[$file_path]['router'] = $router . '/' . $str[$file_path]['url'];
+            if ($enable_url_follow == true) {
+                $str[$file_path]['full_url'] = REAL_HOME . '/' . $currRouter . '?appFollow=' . $str[$file_path]['router'];
+            } else {
+                $str[$file_path]['full_url'] = REAL_HOME . '/' . $str[$file_path]['router'];
+            }
+            if (isset($str[$file_path]['name'])) {
+                if (isset($str[$file_path]['position']))
+                    $pos = $str[$file_path]['position'];
+                else $pos = 99999;
+                $tmp[$file_path] = $pos;
+            } else {
+                unset($str[$file_path]);
+                continue;
+            }
+            if (!$is_file) {
+                $dir_path = $file_path; $dir_name = $file; $tmp_sub = array();
+                $index_file = $fist_file_getcmt;
+                $handlet = glob($dir_path . '/*.php');
+                foreach ($handlet as $kdir => $file_path_in_dir) {
+                    if (!is_file($file_path_in_dir)) {
+                        unset ($handlet[$kdir]);
+                        continue;
                     }
-                    $menus[] = $get;
+                    if ($file_path_in_dir != $index_file) {
+                        $str_sub[$file_path_in_dir] = $parse->ini_php_file_comment($file_path_in_dir);
+                        if (!empty($str_sub[$file_path_in_dir]['folder_name'])) {
+                            $str_sub[$file_path_in_dir]['name'] = $str_sub[$file_path_in_dir]['folder_name'];
+                        }
+                        if (!empty($str_sub[$file_path_in_dir]['name'])) {
+                            $file_name_in_dir = end(explode('/', $file_path_in_dir));
+                            if (empty($str_sub[$file_path_in_dir]['title'])) {
+                                $str_sub[$file_path_in_dir]['title'] = $str_sub[$file_path_in_dir]['name'];
+                            }
+                            $str_sub[$file_path_in_dir]['url'] = str_replace('.' . $dir_name . '.php', '', $file_name_in_dir);
+                            $str_sub[$file_path_in_dir]['router'] = $router . '/' . $dir_name . '/' . $str_sub[$file_path_in_dir]['url'];
+                            if ($enable_url_follow == true) {
+                                $str_sub[$file_path_in_dir]['full_url'] = REAL_HOME . '/' . $currRouter . '?appFollow=' . $str_sub[$file_path_in_dir]['router'];
+                            } else {
+                                $str_sub[$file_path_in_dir]['full_url'] = REAL_HOME . '/' . $str_sub[$file_path_in_dir]['router'];
+                            }
+                            if (isset($str_sub[$file_path_in_dir]['position'])) {
+                                $pos = $str_sub[$file_path_in_dir]['position'];
+                            } else $pos = 99999;
+                            $tmp_sub[$file_path_in_dir] = $pos;
+                        }
+                    }
+                }
+                /**
+                 * sort menu by position
+                 */
+                asort($tmp_sub);
+                $handlet = array_keys($tmp_sub);
+                foreach ($handlet as $file_path_in_dir) {
+                    $str[$dir_path]['sub_menus'][] = $str_sub[$file_path_in_dir];
                 }
             }
         }
-
+        /**
+         * sort by position
+         */
+        asort($tmp);
+        $list_menu_path = array_keys($tmp);
+        foreach ($list_menu_path as $menu_path) {
+            $allow_access = true;
+            if (isset($str[$menu_path]['allow_access'])) {
+                $lists_access = explode(',', $str[$menu_path]['allow_access']);
+                foreach ($lists_access as $key => $perm) {
+                    $lists_access[$key] = trim($perm);
+                }
+                if (!in_array($obj->user['perm'], $lists_access) && !$permission->is_admin()) {
+                    $allow_access = false;
+                }
+            }
+            if ($allow_access == true) {
+                $str[$menu_path]['icon'] = isset($str[$menu_path]['icon']) ? $str[$menu_path]['icon'] : $default_icon;
+                $menus[] = $str[$menu_path];
+            }
+        }
+        $_static_function['get_apps_from_path'][$path . '-' . $router . '-' . $both_index] = $menus;
         return $menus;
     }
-
 }
 
 /**
@@ -575,74 +875,39 @@ if (!function_exists('get_list_modules')) {
 
     function get_list_modules()
     {
-
-        static $_cache_modules = array();
-
-        if (!empty ($_cache_modules)) {
-
-            return $_cache_modules;
+        static $_static_function;
+        if (!empty ($_static_function['get_list_modules'])) {
+            return $_static_function['get_list_modules'];
         }
-
         $cache_file = __MODULES_PATH . '/modules.dat';
-
         $data = @file_get_contents($cache_file);
-
         $data = @unserialize($data);
-
-        if (!isset($data[BACKGROUND])) {
-
-            $data[BACKGROUND] = array();
+        if (empty($data)) {
+            $data['admin'] = array();
         }
-
-        if (!isset($data[APP])) {
-
-            $data[APP] = array();
-        }
-
-        if (empty($data) || empty($data[APP])) {
-
-            $data[APP][] = 'admin';
-        }
-
         /**
          * auto load protected module
          */
-        $list_protected = sys_config('modules_protected');
-
-        foreach ($list_protected[BACKGROUND] as $mod_protected) {
-
-            if (!in_array($mod_protected, $data[BACKGROUND])) {
-
-                $data[BACKGROUND][] = $mod_protected;
+        $list_protected = sysConfig('modules_protected');
+        foreach ($list_protected as $mod_protected) {
+            if (!in_array($mod_protected, array_keys($data))) {
+                $data[$mod_protected] = array();
             }
         }
-
-        foreach ($list_protected[APP] as $mod_protected) {
-
-            if (!in_array($mod_protected, $data[APP])) {
-
-                $data[APP][] = $mod_protected;
-            }
-        }
-
-        $_cache_modules = $data;
-
+        $_static_function['get_list_modules'] = $data;
         return $data;
     }
 }
 
 /**
  * the new way to get model of a module
- *
  * @param bool $name
  * @return mixed
  */
 if (!function_exists('model')) {
 
-    function model($name = false)
-    {
+    function model($name = false) {
         global $registry;
-
         return $registry->model->get($name);
     }
 }
@@ -657,31 +922,13 @@ if (!function_exists('model')) {
  */
 if (!function_exists('run_hook')) {
 
-    function run_hook($module = _PUBLIC, $hook_name, $hook_run, $weight = null)
+    function run_hook($module = ZPUBLIC, $hook_name, $hook_run, $weight = null)
     {
-
         if (is_null($weight)) {
-
-
             $GLOBALS['hook'][$module][$hook_name][] = $hook_run;
-
         } else {
-
             $weight = (int)$weight;
-
             $GLOBALS['hook'][$module][$hook_name][$weight] = $hook_run;
-        }
-    }
-
-}
-
-if (!function_exists('hook_data')) {
-
-    function hook_data($module = _PUBLIC, $hook_name, $data = null) {
-
-        if (!is_null($data)) {
-
-            $GLOBALS['hook_data'][$module][$hook_name] = $data;
         }
     }
 }
@@ -695,68 +942,14 @@ if (!function_exists('hook_data')) {
  */
 if (!function_exists('hook')) {
 
-    function hook($module = _PUBLIC, $name, $data = false, $protected = false)
-    {
-
-        if (empty($module)) {
-
-            $module = _PUBLIC;
+    function hook($module = ZPUBLIC, $name, $data = false, $opt = array()) {
+        global $registry;
+        if ($module == ZPUBLIC) {
+            return $registry->hook->call($name, $data, $opt);
         }
-
-        if (isset($GLOBALS['hook_data'][$module][$name]) && !is_null($GLOBALS['hook_data'][$module][$name])) {
-
-            return $GLOBALS['hook_data'][$module][$name];
-        }
-
-        if (!isset($GLOBALS['hook'][$module][$name])) {
-
-            return $data;
-        }
-
-        $listFunction = $GLOBALS['hook'][$module][$name];
-
-        if (!is_array($listFunction)) {
-
-            $HookFunction = $listFunction;
-
-            return $HookFunction($data);
-
-        } else {
-
-            $weights = array_keys($listFunction);
-
-            /**
-             * sort hook by weight
-             */
-            sort($weights);
-
-            /**
-             * if the hook has to be protected,
-             * just run the hook end
-             */
-            if ($protected == true) {
-
-                $HookFunction = $listFunction[end($weights)];
-
-                return $HookFunction($data);
-            }
-
-            /**
-             * if the hook is not protected,
-             * run the all hook
-             */
-            foreach ($weights as $w) {
-
-                $HookFunction = $listFunction[$w];
-
-                $data = $HookFunction($data);
-
-            }
-
-            return $data;
-        }
+        $hook = $registry->hook->get($module);
+        return $hook->loader($name, $data, $opt);
     }
-
 }
 
 /**
@@ -767,14 +960,63 @@ if (!function_exists('hook')) {
  */
 if (!function_exists('phook')) {
 
-    function phook($name, $data = false, $protected = false)
-    {
-
-        echo hook(_PUBLIC, $name, $data, $protected);
+    function phook($name, $data = false, $opt = array()) {
+        global $registry;
+        return $registry->hook->call($name, $data, $opt);
     }
-
 }
 
+/**
+ * @param $module
+ * @param $name
+ * @param $data
+ * @param $append_data
+ * @return mixed
+ */
+if (!function_exists('hook_append')) {
+
+    function hook_append($module, $name, $data, $append_data) {
+        global $registry;
+        return $registry->hook->append($module, $name, $data, $append_data);
+    }
+}
+
+/**
+ *
+ * @param string $link
+ * @param string $link_title
+ * @param string $add
+ * @return string
+ */
+if (!function_exists('url')) {
+    function url($link = '', $link_title = '', $add = '')
+    {
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+
+        if (isset($link)) {
+            if (!isset($link_title)) {
+                $link_title = $link;
+            }
+            if (preg_match("/^http/", $link)) {
+                $url = $link;
+            } elseif (preg_match("~^/~", $link)) {
+                $url = HOME . $link;
+            } else {
+                if (preg_match('/^(\?|&)/', $link)) {
+                    $url = HOME . $_SERVER['REQUEST_URI'] . $link;
+                } else {
+                    $url = HOME . '/' . $link;
+                }
+            }
+            return '<a href="' . $url . '" ' . $add . '>' . $link_title . '</a>';
+        }
+    }
+}
 
 /**
  * replace function to new function
@@ -788,10 +1030,8 @@ if (!function_exists('function_replace')) {
     function function_replace($search, $replace)
     {
         if (!empty($replace) && !empty($replace)) {
-
             $GLOBALS['function_replace'][$search] = $replace;
         }
-
     }
 }
 
@@ -806,7 +1046,6 @@ if (!function_exists('check_function_replace')) {
     function check_function_replace($name)
     {
         if (isset($GLOBALS['function_replace'][$name])) {
-
             return true;
         }
     }
@@ -824,29 +1063,18 @@ if (!function_exists('load_function')) {
     function load_function($name, $data)
     {
         $out = false;
-
         if (isset($GLOBALS['function_replace'][$name])) {
-
             $function = $GLOBALS['function_replace'][$name];
-
             $pushs = array();
-
             if (!empty($data) && is_array($data)) {
-
                 foreach ($data as $k => $val) {
-
                     $pushs[] = '$data[' . $k . ']';
-
                 }
                 $push_on = implode(', ', $pushs);
             }
-
             $code1 = $function . '(' . $push_on . ')';
-
             $code2 = '$out = ' . $code1 . ';';
-
             eval($code2);
-
             return $out;
         }
         return false;
@@ -861,111 +1089,93 @@ if (!function_exists('load_function')) {
  */
 if (!function_exists('register_widget_group')) {
 
-    function register_widget_group($widget_data = array())
-    {
-
+    function register_widget_group($widget_data = array()) {
         if (empty ($widget_data['name'])) {
-
             return false;
         }
-
         if (isset ($GLOBALS['widgets'][$widget_data['name']])) {
-
             return false;
         }
+        $GLOBALS['widgets'][$widget_data['name']]['config'] = $widget_data;
+    }
+}
 
-        $GLOBALS['widgets'][$widget_data['name']]['data'] = $widget_data;
+if (!function_exists('add_widget')) {
 
+    /**
+     * @param $name
+     * @param array $widget_data
+     */
+    function add_widget($name, $widget_data = array()) {
+        $GLOBALS['widgets'][$name]['list'][] = array(
+            'wg' => $name,
+            'title' => isset($widget_data['title'])? $widget_data['title'] : '',
+            'content' => $widget_data['content'],
+            'template' => isset($widget_data['template']) ? $widget_data['template']:TEMPLATE
+        );
     }
 }
 
 if (!function_exists('widget')) {
 
-    function widget_group($name)
-    {
-
-        if (!isset($GLOBALS['widgets'][$name]) || empty ($GLOBALS['widgets'][$name]['data'])) {
-
+    function widget_group($name) {
+        if (!isset($GLOBALS['widgets'][$name]) || empty ($GLOBALS['widgets'][$name]['config']) || !is_array($GLOBALS['widgets'][$name]['config'])) {
             return false;
         }
+
         /**
          * get data widget group
          */
-        $wdata = $GLOBALS['widgets'][$name]['data'];
-
-        if (!isset($wdata['start_title'])) {
-
-            $wdata['start_title'] = '';
-        }
-        if (!isset($wdata['end_title'])) {
-
-            $wdata['end_title'] = '';
-        }
-        if (!isset($wdata['start_content'])) {
-
-            $wdata['start_content'] = '';
-        }
-        if (!isset($wdata['end_content'])) {
-
-            $wdata['end_content'] = '';
-        }
+        $wConfig = $GLOBALS['widgets'][$name]['config'];
 
         /**
          * Check the widget display
          */
-        if (isset($wdata['display'])) {
-
-            if (!is_array($wdata['display'])) {
-
-                if (!is($wdata['display'], ONLY_THIS_PERM)) {
-
+        if (isset($wConfig['display'])) {
+            if (!is_array($wConfig['display'])) {
+                if (!is($wConfig['display'], ONLY_THIS_PERM)) {
                     return;
                 }
-
             } else {
-
                 $show = false;
-
-                foreach ($wdata['display'] as $who_allow) {
-
+                foreach ($wConfig['display'] as $who_allow) {
                     if (is($who_allow, ONLY_THIS_PERM)) {
-
                         $show = true;
                         break;
                     }
                 }
-
                 if ($show == false) {
-
                     return;
                 }
             }
         }
 
-        $widgets = model()->_get_widget_group($name);
-
-        $GLOBALS['widgets'][$name]['list'] = $widgets;
-
+        /**
+         * Get widget from database
+         */
+        $listFromDB = model('_background')->_get_widget_group($name, TEMPLATE);
+        if (isset($GLOBALS['widgets'][$name]['list']) && is_array($GLOBALS['widgets'][$name]['list'])) {
+            $GLOBALS['widgets'][$name]['list'] = array_merge($listFromDB, $GLOBALS['widgets'][$name]['list']);
+        } else $GLOBALS['widgets'][$name]['list'] = $listFromDB;
+        $out = '';
         foreach ($GLOBALS['widgets'][$name]['list'] as $widget) {
-
+            $out .= $wConfig['start'];
             /**
              * print title widget
              */
             if (!empty ($widget['title'])) {
-
-                echo $wdata['start_title'] . h_decode($widget['title']) . $wdata['end_title'];
+                $out .= $wConfig['title']['start'] . h_decode($widget['title']) . $wConfig['title']['end'];
             }
-
             /**
              * print content widget
              */
             if (!empty ($widget['content'])) {
-
-                echo $wdata['start_content'] . h_decode($widget['content']) . $wdata['end_content'];
+                $out .= $wConfig['content']['start'] . h_decode($widget['content']) . $wConfig['content']['end'];
             }
+            $out .= $wConfig['end'];
         }
+        echo $out;
     }
-
 }
 
 /**
@@ -976,15 +1186,10 @@ if (!function_exists('unregister_globals')) {
     function unregister_globals()
     {
         if (ini_get('register_globals')) {
-
             $array = array('_REQUEST', '_SESSION', '_SERVER', '_ENV', '_FILES');
-
             foreach ($array as $value) {
-
                 foreach ($GLOBALS[$value] as $key => $var) {
-
                     if ($var === $GLOBALS[$key]) {
-
                         unset($GLOBALS[$key]);
                     }
                 }
@@ -993,31 +1198,23 @@ if (!function_exists('unregister_globals')) {
     }
 }
 
+if (!function_exists('sysConfig')) {
 
-/**
- * @access public
- * @param key config
- * Load system config from ZenConfig_Main.php
- */
-if (!function_exists('sys_config')) {
-
-    function sys_config($key)
+    /**
+     * Load system config from ZenConfig_Main.php
+     * @param $key
+     * @return mixed
+     */
+    function sysConfig($key)
     {
-        global $system_config;
-
+        global $zen;
         /**
          * check sys config exist
          */
-        if (isset($system_config[$key])) {
-
-            return $system_config[$key];
-
-        } else {
-
-            return false;
-        }
+        if (isset($zen['config'][$key])) {
+            return $zen['config'][$key];
+        } else return false;
     }
-
 }
 
 /**
@@ -1025,25 +1222,64 @@ if (!function_exists('sys_config')) {
  * @param key config
  * Load system config from file config.php in current template
  */
-if (!function_exists('tpl_config')) {
+if (!function_exists('tplConfig')) {
 
-    function tpl_config($key)
+    function tplConfig($key, $template = '')
     {
-        global $template_config;
-
+        global $template_config, $registry;
+        if (empty($template)) {
+            $selectTemp = TEMPLATE;
+        } else $selectTemp = $template;
+        /**
+         * get config from database
+         */
+        $dbConfig = $registry->config->getTemplateConfig($selectTemp);
+        if (isset($dbConfig[$key])) return $dbConfig[$key];
         /**
          * check template config exist
          */
         if (isset($template_config[$key])) {
-
             return $template_config[$key];
-
-        } else {
-
-            return false;
         }
     }
+}
 
+/**
+ * Load config from database for module
+ * @param $key
+ * @param $module
+ * @return mixed
+ */
+if (!function_exists('modConfig')) {
+
+    function modConfig($key, $module) {
+        global $registry;
+        static $_static_functions;
+        if (isset($_static_functions['modConfig'][$key . '-' . $module])) {
+            return $_static_functions['modConfig'][$key . '-' . $module];
+        }
+        /**
+         * get config from database
+         */
+        $out = $registry->config->getModuleConfig($module, $key);
+        $_static_functions['modConfig'][$key . '-' . $module] = $out;
+        return $out;
+    }
+}
+
+/**
+ * Load system config from database
+ * @access public
+ * @param key config
+ */
+if (!function_exists('dbConfig')) {
+
+    function dbConfig($key) {
+        global $zen;
+        if (isset($zen['config']['fromDB'][$key])) {
+            return $zen['config']['fromDB'][$key];
+        } else return false;
+    }
 }
 
 /**
@@ -1056,35 +1292,25 @@ if (!function_exists('show_error')) {
 
     function show_error($num, $msg = '')
     {
-        global $system_config, $registry;
-
-        $controller = $system_config['default_router_error'];
-
+        global $zen, $registry;
+        $controller = $zen['config']['default_router_error'];
         $path = __MODULES_PATH;
-
         if (isset($num))
             $error_num = $num;
         else
             $error_num = 404;
-
         $path_error_controller = $path . '/' . $controller . '/' . $controller . 'Controller.php';
-
         include_once $path_error_controller;
-
         $class = $controller . 'Controller';
         $action = 'index';
         $args = array($error_num);
-
         /**
          * load error controller
          */
         $controller = new $class($registry);
-
         if (!empty($msg)) {
-
             $controller->setSpecialMsg($msg);
         }
-
         $controller->$action($args);
         exit;
     }
@@ -1092,347 +1318,78 @@ if (!function_exists('show_error')) {
 
 /**
  * @access public
- * @param key config
- * Load system config from database
- */
-if (!function_exists('get_config')) {
-
-    function get_config($key = '')
-    {
-
-        global $system_config;
-
-        if (isset($system_config['from_db'][$key])) {
-
-            if ($key == 'templates') {
-
-                $out = @unserialize($system_config['from_db'][$key]);
-
-            } else {
-
-                $out = $system_config['from_db'][$key];
-            }
-
-            return $out;
-
-        } else {
-
-            return false;
-        }
-    }
-}
-
-/**
- * @access public
  * get template name
  */
-if (!function_exists('get_template')) {
+if (!function_exists('getTemplate')) {
 
-    function get_template()
+    function getTemplate()
     {
-        global $system_config;
-
+        global $zen;
         if (!empty($_SESSION['ss_review_template'])) {
-
             return $_SESSION['ss_review_template'];
         }
-
         $device = load_library('DDetect');
-
-        if (!isset($system_config['from_db']['templates'])) {
-
-            $templates = array();
-
+        if (!empty($zen['config']['fromDB']['templates'])) {
+            $templates = $zen['config']['fromDB']['templates'];
         } else {
-
-            $templates = get_config('templates');
+            $templates = getActiveTemplate();
         }
 
         if (empty($templates)) {
-
-            $templates['Mobile'] = 'default';
-            $templates['other'] = 'default';
+            $templates['Mobile'] = 'zencms-mobile-web';
+            $templates['other'] = 'zencms-web';
         }
-
         if ($device->isMobile()) {
-
             $out = $templates['Mobile'];
         } else {
-
             $out = $templates['other'];
         }
 
-        foreach ($templates as $os => $value) {
-
+        if ($templates) foreach ($templates as $os => $value) {
             if (!empty($value)) {
-
                 if ($os != 'other' && $os != 'Mobile') {
-
                     $method = 'is' . $os;
-
                     if ($device->$method()) {
-
                         $out = $value;
                         break;
                     }
                 }
             }
         }
-
         if (empty($out)) {
-
-            $out = 'default';
+            $out = 'zencms-web';
         }
-
         return $out;
     }
-
 }
 
 /**
- * load header layout
+ * get template list activated from templates.dat
+ * @return array
  */
-if (!function_exists('load_header')) {
+if (!function_exists('getActiveTemplate')) {
 
-    function load_header()
-    {
-        load_layout('header');
-    }
-}
-
-/**
- * load layout footer
- */
-if (!function_exists('load_footer')) {
-
-    function load_footer()
-    {
-        load_layout('footer');
-    }
-}
-
-/**
- * load layout message
- */
-if (!function_exists('load_message')) {
-
-    function load_message()
-    {
-        load_layout('message');
-    }
-}
-
-if (!function_exists('load_mini_layout')) {
-
-    function load_mini_layout($name, $data)
-    {
-
-        /**
-         * set layout path
-         */
-        $layout[] = _PATH_TEMPLATE_TPL . '/' . __MODULE_NAME . '/layout/' . $name . '.layout.php';
-
-        $layout[] = _PATH_TEMPLATE . '/layout/' . $name . '.layout.php';
-
-        $layout[] = __MODULES_PATH . '/' . __MODULE_NAME . '/tpl/layout/' . $name . '.layout.php';
-
-        foreach ($layout as $file) {
-
-            if (file_exists($file)) {
-
-                /**
-                 * load the layout
-                 */
-                include $file;
-
-                break;
-            }
+    function getActiveTemplate($reload = false) {
+        static $_static_function;
+        if (!empty($_static_function['getActiveTemplate']) && $reload == false) {
+            return $_static_function['getActiveTemplate'];
         }
-    }
-}
-
-/**
- * This function will load the "layout" in the desired location.
- * The priority order for the "layout" as follows:
- * First, it will look to the folder "layout" in __FOLDER_TPL_NAME.
- * If it is not compatible with the layout will look to the "layout" in the "layout" of the "template"
- *
- * @param $name
- */
-if (!function_exists('load_layout')) {
-
-    function load_layout($name, $show_with = false, $only_this_perm = false)
-    {
-        global $registry_data, $registry;
-
-        /**
-         * load permission library
-         */
-        $permission = load_library('permission');
-
-        if (is_bool($show_with) && $show_with == true) {
-
-            if (!$permission->is_manager()) {
-
-                return false;
-            }
-
+        $file = __TEMPLATES_PATH . '/templates.dat';
+        if (!file_exists($file)) {
+            $out = array();
         } else {
-
-            if (!empty ($show_with)) {
-
-                $check = 'is_' . $show_with;
-
-                if (!$permission->$check($only_this_perm)) {
-
-                    return false;
-                }
-            }
-        }
-
-        /**
-         * fetch data
-         */
-        foreach ($registry_data as $key => $value) {
-
-            $$key = $value;
-        }
-
-        /**
-         * check title
-         * if title not exists then get default title
-         */
-        if (!isset($page_title)) $page_title = get_config('title');
-
-        if (!isset($page_keyword)) $page_keyword = '';
-
-        if (!isset($page_des)) $page_des = '';
-
-        if (!isset($page_url)) $page_url = '';
-
-        /**
-         *
-         * decode title
-         */
-        $page_title = h_decode($page_title);
-
-        /**
-         * get page more
-         */
-        if (isset($page_more)) {
-
-            if (!is_array($page_more)) {
-
-                $page_more = array($page_more);
-            }
-
-        } else {
-
-            $page_more = array();
-        }
-
-        /**
-         * get success message
-         */
-        if (isset($success)) {
-
-            if (!is_array($success)) {
-
-                $success = array($success);
-            }
-
-        } else {
-
-            if (!empty($_SESSION['msg']['success'])) {
-
-                $success = array($_SESSION['msg']['success']);
-
-                unset($_SESSION['msg']['success']);
-
+            $data = file_get_contents($file);
+            $dataArr = unserialize($data);
+            if (!is_array($dataArr)) {
+                $out = array();
             } else {
-                $success = array();
+                $out = $dataArr;
             }
         }
-
-        /**
-         * get errors message
-         */
-        if (isset($errors)) {
-
-            if (!is_array($errors)) {
-
-                $errors = array($errors);
-            }
-
-        } else {
-
-            $errors = array();
-        }
-
-        /**
-         * get notices message
-         */
-        if (isset($notices)) {
-
-            if (!is_array($notices)) {
-
-                $notices = array($notices);
-            }
-
-        } else {
-
-            $notices = array();
-        }
-
-        $getsetting = $registry->settings->get(__MODULE_NAME);
-
-        if (!empty($getsetting)) {
-
-            if (!isset($getsetting->setting['own_template'])) {
-
-                $getsetting->setting['own_template'] = null;
-            }
-
-            $own_theme = $getsetting->setting['own_template'];
-
-        } else {
-
-            $own_theme = null;
-        }
-
-        if (!is_null($own_theme)) {
-
-            $layout[] = __MODULES_PATH . '/' . __MODULE_NAME . '/templates/' . $own_theme . '/' . __FOLDER_TPL_NAME . '/layout/' . $name . '.layout.php';
-
-            $layout[] = __MODULES_PATH . '/' . __MODULE_NAME . '/templates/' . $own_theme . '/layout/' . $name . '.layout.php';
-
-        } else {
-            /**
-             * set layout path
-             */
-            $layout[] = _PATH_TEMPLATE_TPL . '/' . __MODULE_NAME . '/layout/' . $name . '.layout.php';
-
-            $layout[] = _PATH_TEMPLATE . '/layout/' . $name . '.layout.php';
-
-            $layout[] = __MODULES_PATH . '/' . __MODULE_NAME . '/tpl/layout/' . $name . '.layout.php';
-
-        }
-
-        foreach ($layout as $file) {
-
-            if (file_exists($file)) {
-
-                /**
-                 * load the layout
-                 */
-                include $file;
-
-                break;
-            }
-        }
+        $_static_function['getActiveTemplate'] = $out;
+        return $out;
     }
 }
-
 
 /**
  *
@@ -1444,18 +1401,12 @@ if (!function_exists('is_perm')) {
     function is_perm($perm, $only_this_perm = false)
     {
         global $registry;
-
         if (empty($perm)) {
-
             return false;
         }
-
         $permission = load_library('permission');
-
         $permission->set_user($registry->user);
-
         $check = 'is_' . $perm;
-
         if ($permission->$check($only_this_perm)) {
             return true;
         }
@@ -1465,9 +1416,7 @@ if (!function_exists('is_perm')) {
 
 if (!function_exists('is')) {
 
-    function is($perm, $only_this_perm = false)
-    {
-
+    function is($perm, $only_this_perm = false) {
         return is_perm($perm, $only_this_perm);
     }
 }
@@ -1475,13 +1424,9 @@ if (!function_exists('is')) {
 
 if (!function_exists('set_global_msg')) {
 
-    function set_global_msg($msg = '')
-    {
-
+    function set_global_msg($msg = '') {
         $err = debug_backtrace();
-
         $function = $err[1]['function'];
-
         $GLOBALS['errors_msg'][$function] = $msg;
     }
 }
@@ -1490,9 +1435,7 @@ if (!function_exists('get_global_msg')) {
 
     function get_global_msg($where)
     {
-
         if (isset($GLOBALS['errors_msg'][$where])) {
-
             return $GLOBALS['errors_msg'][$where];
         }
     }
@@ -1503,26 +1446,19 @@ if (!function_exists('get_global_msg')) {
  *
  * @return bool|string
  */
-if (!function_exists('tempdir')) {
+if (!function_exists('tempDir')) {
 
-    function tempdir($prefix = '_Z_')
+    function tempDir($prefix = '_Z_')
     {
         $dir = __FILES_PATH . '/systems/tmp';
-
-        $tempfile = tempnam($dir, $prefix);
-
-        if (file_exists($tempfile)) {
-
-            unlink($tempfile);
+        $tempFile = tempnam($dir, $prefix);
+        if (file_exists($tempFile)) {
+            unlink($tempFile);
         }
-
-        $ok = mkdir($tempfile);
-
+        $ok = mkdir($tempFile);
         if ($ok) {
-
-            if (is_dir($tempfile)) {
-
-                return $tempfile;
+            if (is_dir($tempFile)) {
+                return $tempFile;
             }
             return false;
         }
@@ -1543,16 +1479,10 @@ if (!function_exists('h')) {
     function h($var = '', $flags = ENT_QUOTES, $encoding = 'UTF-8')
     {
         if (is_array($var)) {
-
             foreach ($var as $id => $str) {
-
                 if (!is_array($var[$id])) {
-
                     $var[$id] = htmlspecialchars($str, $flags, $encoding);
-
-                } else {
-                    h($var[$id]);
-                }
+                } else h($var[$id]);
             }
             return $var;
         }
@@ -1568,20 +1498,12 @@ if (!function_exists('h')) {
  */
 if (!function_exists('h_decode')) {
 
-    function h_decode($var = '', $flags = ENT_QUOTES)
-    {
-
+    function h_decode($var = '', $flags = ENT_QUOTES) {
         if (is_array($var)) {
-
             foreach ($var as $id => $str) {
-
                 if (!is_array($var[$id])) {
-
                     $var[$id] = htmlspecialchars_decode($str, $flags);
-
-                } else {
-                    h_decode($var[$id]);
-                }
+                } else h_decode($var[$id]);
             }
             return $var;
         }
@@ -1589,6 +1511,56 @@ if (!function_exists('h_decode')) {
     }
 }
 
+/**
+ * redirect to last url
+ * @return bool
+ */
+if (!function_exists('goBack')) {
+
+    function goBack($returnUrl = false)
+    {
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        if (!empty($_GET['back'])) {
+            $urlBack = urldecode($_GET['back']);
+            $valid = load_library('validation');
+            /**
+             * make sure this is a url
+             */
+            if ($valid->isValid('url', $urlBack)) {
+                if (!$returnUrl)
+                    redirect($urlBack);
+                else return $urlBack;
+            }
+        }
+    }
+}
+
+/**
+ * return true if device is mobile
+ * @return mixed
+ */
+if (!function_exists('is_mobile')) {
+
+    function is_mobile()
+    {
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        /**
+         * load DDetect library
+         */
+        $device = load_library('DDetect');
+        return $device->isMobile();
+    }
+}
 
 /**
  * Remove Invisible Characters
@@ -1629,40 +1601,24 @@ if (!function_exists('generate_log')) {
 
     function generate_log($name = LOG_VERIFY_ACCESS, $msg = false)
     {
-
         global $registry;
-
         $dir_log = __FILES_PATH . '/systems/log';
 
         if ($name == LOG_DDOS) {
-
             $file_log = $dir_log . '/ipfoods/' . client_ip() . '.log';
-
             if (empty($msg)) {
-
-                $msg = microtime_float() . "\r\n";
+                $msg = microTime_float() . "\r\n";
             }
-
         } elseif ($name == LOG_VERIFY_ACCESS) {
-
             $file_log = $dir_log . '/verify_access.log';
-
             if (!$msg) {
-
                 if (isset($registry->user['username'])) {
-
                     $msg = $registry->user['username'] . ': ';
-
-                } else {
-
-                    $msg = '';
-                }
+                } else $msg = '';
                 $msg .= 'Trying to login: ' . curPageURL() . ' with password: ' . $_POST['zen_verity_access'];
             }
         }
-
         load_helper('time');
-
         error_log("[" . get_date_time(time(), 'date-time') . "] [" . client_ip() . "] [$msg] [" . client_user_agent() . "]\r\n", 3, $file_log);
     }
 }
@@ -1741,5 +1697,108 @@ if (!function_exists('is_really_writable')) {
             return is_writable($file);
         }
 
+    }
+}
+
+/**
+ * @param array $tree
+ * @param string $mixed
+ * @return string
+ */
+if (!function_exists('display_tree')) {
+
+    function display_tree($tree = array(), $mixed = '')
+    {
+        global $registry;
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        $temp = $registry->templateOBJ;
+        $breadcrumb = $temp->getMap('breadcrumb');
+        $out = '';
+        if (is_array($tree)) {
+            $i = 0;
+            foreach ($tree as $url) {
+                if ($url != '') {
+                    $i++;
+                    if ($i != count($tree)) $out .= $breadcrumb['item']['start'] . $url . $breadcrumb['item']['end'];
+                    else $out .= $breadcrumb['item']['start'] . $url . $breadcrumb['item']['end'];
+                }
+            }
+        }
+        return $out;
+    }
+}
+
+/**
+ *
+ * @param array $tree
+ * @param string $mixed
+ */
+if (!function_exists('display_tree_modulescp')) {
+
+    function display_tree_modulescp($tree = array(), $mixed = '')
+    {
+        global $registry;
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        /**
+         * load permission library
+         */
+        $perm = load_library('permission');
+        $perm->set_user($registry->user);
+        if ($perm->is_super_manager()) {
+            $kstree[] = url(HOME . '/admin', 'Admin CP');
+            $kstree[] = url(HOME . '/admin/general/modulescp', 'Modules cpanel');
+        }
+        if (!empty($tree)) {
+            return (isset($kstree) ? display_tree($kstree, $mixed) . $mixed : '') . display_tree($tree, $mixed);
+        }
+        return display_tree($kstree, $mixed);
+    }
+}
+
+/**
+ * function send mail user PHPmailer
+ * @param bool $to_email
+ * @param bool $subject
+ * @param bool $content
+ * @param bool $altbody
+ * @return mixed
+ */
+if (!function_exists('send_mail')) {
+
+    function send_mail($to_email = false, $subject = false, $content = false, $altbody = false)
+    {
+        /**
+         * allow replace this function
+         */
+        if (check_function_replace(__FUNCTION__)) {
+            return load_function(__FUNCTION__, func_get_args());
+        }
+        /**
+         * load PHPmailer library
+         */
+        $mailer = load_library('PHPmailer');
+        $mailer->IsSMTP();
+        $mailer->IsHTML(true);
+        $mailer->AddAddress($to_email, $to_email);
+        $mailer->Subject = $subject;
+        $mailer->Body = $content;
+        $mailer->AltBody = $altbody;
+        $mailer->WordWrap = 50;
+        /**
+         * action send mail
+         */
+        $send = $mailer->Send();
+        if (!$send) set_global_msg($mailer->ErrorInfo);
+        return $send;
     }
 }

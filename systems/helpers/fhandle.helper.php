@@ -1,107 +1,188 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
-
 if (!function_exists('scan_modules')) {
 
-    function scan_modules()
-    {
-
+    function scan_modules() {
+        global $registry;
+        static $_static_function;
+        if (!empty($_static_function['scan_modules'])) {
+            return $_static_function['scan_modules'];
+        }
         $parse = load_library('parse');
 
         $base_path = __MODULES_PATH;
         $old_perm = fileperms($base_path);
         $perm_read = 0755;
-
-        changemod($base_path, $perm_read);
-
+        changeMod($base_path, $perm_read);
         if (!is_readable($base_path)) {
-
             return array();
         }
 
+        $list_protected = sysConfig('modules_protected');
+        $protected = $list_protected;
+
         $out = array();
-
         $lists = glob(__MODULES_PATH . '/*', GLOB_ONLYDIR);
-
-        changemod($base_path, $old_perm);
+        changeMod($base_path, $old_perm);
 
         foreach ($lists as $module_path) {
-
             $mods = explode('/', $module_path);
-
             $module_name = end($mods);
-
-            $controller_file = $base_path . '/' . $module_name . '/' . $module_name . 'Controller.php';
-
-            $settings_file = $base_path . '/' . $module_name . '/' . $module_name . 'Settings.php';
-
-            $info_file = $base_path . '/' . $module_name . '/' . $module_name . '.info';
+            $controller_file = $module_path . '/' . $module_name . 'Controller.php';
+            $settings_file = $module_path . '/' . $module_name . 'Settings.php';
+            $info_file = $module_path . '/' . $module_name . '.info';
+            $readme_file = $module_path . '/readme.txt';
 
             if (file_exists($controller_file) && file_exists($settings_file) && file_exists($info_file)) {
+                $set = $registry->settings->get($module_name);
+                $info = $parse->ini_file($info_file);
+                if (empty($info['name'])) {
+                    $info['name'] = 'Unknown';
+                }
+                if (empty($info['id'])) {
+                    $info['id'] = 'NO ID';
+                }
+                $info['url'] = $module_name;
+                $info['full_path'] = $module_path;
+                if (empty($info['version'])) {
+                    $info['version'] = '0.0';
+                }
+                if (empty($info['author'])) {
+                    $info['author'] = 'Unknown';
+                }
+                if (empty($info['des'])) {
+                    $info['des'] = 'none';
+                }
+                if (in_array($module_name, $protected)) {
+                    $info['protected'] = true;
+                } else {
+                    $info['protected'] = false;
+                }
+                if (file_exists($readme_file) && is_readable($readme_file)) {
+                    $info['readme_file'] = $readme_file;
+                } else {
+                    $info['readme_file'] = false;
+                }
 
-                $re = $parse->ini_file($info_file);
-                $re['url'] = $module_name;
-                $re['full_path'] = $module_path;
-                $out[$module_name] = $re;
+                if (isset($set->setting['extends']) && !is_null($set->setting['extends']) && !empty($set->setting['extends']) && is_array($set->setting['extends'])) {
+                    $option_list = array();
+                    $i = 0;
+                    foreach ($set->setting['extends'] as $app => $extends_set) {
+                        if (!empty($extends_set['router'])) {
+                            $i++;
+                            if (empty($extends_set['name'])) {
+                                $extends_set['name'] = 'Tùy chọn ' . $i;
+                            }
+                            if (empty($extends_set['title'])) {
+                                $extends_set['title'] = $extends_set['name'];
+                            }
+                            //$option_url = HOME . '/' . trim($extends_set['router'], '/') . '?appFollow=' . $module_name . '/' . $app;
+                            $option_url = genUrlAppFollow($module_name . '/' . $app);
+                            $extends_set['full_url'] = $option_url;
+                            if (empty($extends_set['icon'])) {
+                                $extends_set['icon'] = 'icon-flag';
+                            }
+                            $option_list[$module_name . '/' . $app] = $extends_set;
+                        }
+                    }
+                    $info['option'] = $option_list;
+                } else $info['option'] = false;
+                $info['setting'] = $set->setting;
+                $out[$module_name] = $info;
             }
         }
         clearstatcache();
+        $_static_function['scan_modules'] = $out;
         return $out;
     }
-
 }
-
 
 if (!function_exists('scan_templates')) {
 
     function scan_templates()
     {
-
+        global $registry;
+        static $_static_function;
+        if (!empty($_static_function['scan_templates'])) {
+            return $_static_function['scan_templates'];
+        }
+        $hook = $registry->hook->get('admin');
         $path = __TEMPLATES_PATH;
-
+        $list = array();
         $temp = glob($path . '/*', GLOB_ONLYDIR);
-
         foreach ($temp as $k => $t) {
-
             $name = end(explode('/', $t));
-
-            if (!file_exists($t . '/config.php') || !file_exists($t . '/run.php') || !file_exists($t . '/' . $name . '.info') || !is_dir($t . '/' . __FOLDER_TPL_NAME)) {
-
+            if (!file_exists($t . '/config.php')
+                || !file_exists($t . '/run.php')
+                || !file_exists($t . '/' . $name . '.info')
+                || !file_exists($t . '/page.php')
+            ) {
                 unset($temp[$k]);
-
             } else {
-
                 $parse = load_library('parse');
                 $content = file_get_contents($t . '/' . $name . '.info');
-
                 $list[$name] = $parse->ini_string($content);
                 $list[$name]['full_path'] = $t;
                 $list[$name]['url'] = $name;
-            }
-
-            $list[$name]['screenshot'] = '';
-
-            $screenext = array('jpg', 'png', 'gif', 'bmp');
-
-            foreach ($screenext as $ext) {
-
-                if (file_exists(__TEMPLATES_PATH . '/' . $name . '/screenshot.' . $ext)) {
-
-                    $list[$name]['screenshot'] = _BASE_TEMPLATE . '/screenshot.' . $ext;
+                $list[$name]['key'] = $name;
+                $list[$name]['actions']['edit'] = array(
+                    'name' => 'Chỉnh sửa',
+                    'icon' => 'icon-edit',
+                    'full_url' => HOME . '/admin/tools/fileManager?file=templates/' . $name
+                );
+                $list[$name]['actions']['widget'] = array(
+                    'name' => 'Widget',
+                    'icon' => 'icon-th-large',
+                    'full_url' => HOME . '/admin/general/templates/widget/' . $name
+                );
+                $list[$name]['actions']['uninstall'] = array(
+                    'name' => 'Hủy cài đặt',
+                    'icon' => 'icon-remove-sign',
+                    'full_url' => HOME . '/admin/general/templates/uninstall/' . $name
+                );
+                $settingFile = __TEMPLATES_PATH . '/' . $name . '/setting/setting.inc.php';
+                if (file_exists($settingFile)) {
+                    $list[$name]['actions']['setting'] = array(
+                        'name' => 'Cài đặt',
+                        'icon' => 'icon-cog',
+                        'full_url' => HOME . '/admin/general/templates/setting/' . $name
+                    );
                 }
+                /**
+                 * template_action_menu hook*
+                 */
+                $list[$name]['actions'] = $hook->loader('template_action_menu', $list[$name]['actions'], array('var' => $t));
+                $chk_screenshot = __TEMPLATES_PATH . '/' . $name . '/screenshot.' . $list[$name]['url'] . '.jpg';
+                if (file_exists($chk_screenshot)) {
+                    $list[$name]['screenshot'] = HOME . '/templates/' . $name . '/screenshot.' . $list[$name]['url'] . '.jpg';
+                } else $list[$name]['screenshot'] = '';
             }
         }
-
+        $_static_function['scan_templates'] = $list;
         return $list;
     }
 }
@@ -156,7 +237,7 @@ if (!function_exists('fileinfo')) {
         if (is_file($path)) {
 
             $bsize = filesize($path);
-            $fsize = get_size($bsize);
+            $fsize = size2text($bsize);
             $ptype = FILE;
 
         } else {

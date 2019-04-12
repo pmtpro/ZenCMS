@@ -1,16 +1,31 @@
 <?php
 /**
- * folder_name = Caches
+ * folder_name = Cache
  * position = 40
+ * icon = icon-undo
  */
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -20,13 +35,11 @@ $p = load_library('pagination');
 
 $data['page_title'] = 'Caches';
 
-$path = __MODULES_PATH . '/admin/apps/caches';
-
 /** @noinspection PhpParamsInspection */
-$data['menus'] = get_apps($path, 'admin/caches');
+$data['menus'] = get_apps('admin/apps/caches', 'admin/caches');
 
-$tree[] = url(_HOME.'/admin', 'Admin CP');
-$tree[] = url(_HOME.'/admin/caches', $data['page_title']);
+$tree[] = url(HOME.'/admin', 'Admin CP');
+$tree[] = url(HOME.'/admin/caches', $data['page_title']);
 $data['display_tree'] = display_tree($tree);
 
 $obj->view->data = $data;

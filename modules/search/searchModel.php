@@ -1,61 +1,59 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 Class searchModel Extends ZenModel
 {
     function like_result($key) {
-
         if (empty($key)) {
-
             return array();
         }
-
-
     }
 
     function count_tag($url) {
-
-        $sql = "SELECT `id` FROM ".tb()."tags where `url`='$url'";
-
+        $sql = "SELECT `id` FROM ".tb()."tags WHERE `url`='$url'";
         $query = $this->db->query($sql);
-
         return $this->db->num_row($query);
     }
 
     function insert_tag($data) {
-
         if (empty($data['url'])) {
             return false;
         }
-
         $data['time'] = time();
-
         $_sql = $this->db->_sql_insert(tb() . "tags", $data);
-
         if ($this->db->query($_sql)) {
-
             return true;
         }
         return false;
     }
 
     function count_like_tag($tag) {
-
-        $sql = "SELECT `id` FROM ".tb()."tags WHERE `tag` != '$tag' and `tag` LIKE '%$tag%'";
-
+        $sql = "SELECT `id` FROM ".tb()."tags WHERE `tag` != '$tag' AND `tag` LIKE '%$tag%'";
         $query = $this->db->query($sql);
-
         return $this->db->num_row($query);
-
     }
 
     function keyword_like_tag($tag, $limit = 10) {
@@ -130,24 +128,24 @@ Class searchModel Extends ZenModel
 
         if (isset($ro['url'])) {
 
-            $ro['full_url'] = _HOME . '/' . $ro['url'] . '-' . $ro['id'] . '.html';
+            $ro['full_url'] = HOME . '/' . $ro['url'] . '-' . $ro['id'] . '.html';
 
         }
         if (isset($ro['icon'])) {
 
             if (empty($ro['icon'])) {
 
-                $ro['full_icon'] = _HOME . '/templates/' . _TEMPLATE . '/images/' . tpl_config('default_icon');
+                $ro['full_icon'] = _BASE_TEMPLATE . '/images/' . tplConfig('default_icon');
 
             } else {
 
-                $ro['full_icon'] = _HOME . '/files/posts/images/' . $ro['icon'];
+                $ro['full_icon'] = HOME . '/files/posts/images/' . $ro['icon'];
             }
         }
 
         if (isset($ro['content'])) {
 
-            $ro['sub_content'] = subwords(removeTag($ro['content']), 10);
+            $ro['sub_content'] = subWords(removeTag($ro['content']), 10);
         }
 
         return $ro;

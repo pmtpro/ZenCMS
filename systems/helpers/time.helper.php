@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -17,14 +31,10 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
  */
 if (!function_exists('get_date')) {
 
-    function get_date($tineline)
+    function get_date($timeline = false, $options = array())
     {
-
-        $time = $tineline;
-
-        return get_date_time($time, 'date');
+        return get_date_time($timeline, 'date', $options);
     }
-
 }
 
 /**
@@ -32,16 +42,12 @@ if (!function_exists('get_date')) {
  * @param int $tineline
  * @return string
  */
-if (!function_exists('get_time')) {
+if (!function_exists('m_timetostr')) {
 
-    function get_time($tineline, $on_time = true)
+    function m_timetostr($timeline = false, $options = array())
     {
-
-        $time = $tineline;
-
-        return get_date_time($time, 'time', $on_time);
+        return get_date_time($timeline, 'time', $options);
     }
-
 }
 
 /**
@@ -52,48 +58,64 @@ if (!function_exists('get_time')) {
  */
 if (!function_exists('get_date_time')) {
 
-    function get_date_time($timeline = false, $type = 'time', $on_time = true)
+    function get_date_time($timeline = false, $type = 'time', $options = array())
     {
-
         if (!$timeline) {
-
             $timeline = time();
         }
-
-        $timezone = sys_config('timezone');
-
+        $timezone = sysConfig('timezone');
         $timeline = $timeline + $timezone * 3600;
         $current = time() + $timezone * 3600;
-
-        $it_s = intval($current - $timeline);
-        $it_m = intval($it_s / 60);
-        $it_h = intval($it_m / 60);
-        $it_d = intval($it_h / 24);
-        $it_y = intval($it_d / 365);
-
-        if ($type == 'date') {
-
-            return gmdate(sys_config('date_format'), $timeline);
-
-        } elseif ($type == 'date-time') {
-
-            return gmdate(sys_config('date_format') . ' ' . sys_config('time_format'), $timeline);
-
+        if (!empty($options['date_format'])) {
+            $date_format = $options['date_format'];
         } else {
-
-            if (gmdate("j", $timeline) == gmdate("j", $current)) {
-
-                return 'Hôm nay, ' . gmdate(sys_config('time_format'), $timeline);
-            } elseif (gmdate("j", $timeline) == gmdate("j", ($current - 3600 * 24))) {
-
-                return 'Hôm qua, ' . gmdate(sys_config('time_format'), $timeline);
-            }
-            if ($on_time == true) {
-                return gmdate(sys_config('date_format') . ', ' . sys_config('time_format'), $timeline);
-            }
-            return gmdate(sys_config('date_format'), $timeline);
+            $date_format = sysConfig('date_format');
         }
+        if (!empty($options['time_format'])) {
+            $time_format = $options['time_format'];
+        } else {
+            $time_format = sysConfig('time_format');
+        }
+        if ($type == 'date') {
+            return gmdate($date_format, $timeline);
+        } elseif ($type == 'date-time') {
+            return gmdate($date_format . ' ' . $time_format, $timeline);
+        } else {
+            if (gmdate("j", $timeline) == gmdate("j", $current)) {
+                return 'Hôm nay, ' . gmdate($time_format, $timeline);
+            } elseif (gmdate("j", $timeline) == gmdate("j", ($current - 3600 * 24))) {
+                return 'Hôm qua, ' . gmdate($time_format, $timeline);
+            }
+            if (isset($options['display_all']) && $options['display_all'] == true) {
+                return gmdate($date_format . ', ' . $time_format, $timeline);
+            }
+            return gmdate($date_format, $timeline);
+        }
+    }
+}
+
+if (!function_exists('ezDate')) {
+    /**
+     * Return like this: 3 month ago
+     * @param $d
+     * @return string
+     */
+    function ezDate($d) {
+        $currTime = time();
+        if (!is_numeric($d)) {
+            $ts = $currTime - strtotime(str_replace("-","/",$d));
+        } else {
+            $ts = $currTime - $d;
+        }
+        if($ts>31536000) $val = round($ts/31536000,0).' year';
+        else if($ts>2419200) $val = round($ts/2419200,0).' month';
+        else if($ts>604800) $val = round($ts/604800,0).' week';
+        else if($ts>86400) $val = round($ts/86400,0).' day';
+        else if($ts>3600) $val = round($ts/3600,0).' hour';
+        else if($ts>60) $val = round($ts/60,0).' minute';
+        else $val = $ts.' second';
+        if($val>1) $val .= 's';
+        return $val;
     }
 
 }
-?>

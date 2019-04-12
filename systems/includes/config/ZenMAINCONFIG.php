@@ -1,34 +1,50 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 /**
  * Prefix database
  */
-$system_config['table_prefix'] = 'zen_cms_';
+$zen['config']['table_prefix'] = 'zen_cms_';
 
 /**
  * Router default when router is empty
  */
-$system_config['default_router'] = 'blog';
+$zen['config']['default_router'] = 'blog';
 
 /**
  * Router when error
  */
-$system_config['default_router_error'] = 'error';
+$zen['config']['default_router_error'] = 'error';
 
 /**
  * rewrite url
  */
-$system_config['rewrite_url'] = array(
+$zen['config']['rewrite_url'] = array(
+
+    '/^dl\/hightspeed\/(.+)\/([a-zA-Z0-9]+)\/(.+)$/' => 'download/product/$2/$1/$3', //forum
 
     '/^forum\/(.*)-([0-9]+)\.html(\/*)?$/' => 'forum/index/$2/$1', //forum
 
@@ -40,89 +56,88 @@ $system_config['rewrite_url'] = array(
 
     '/^sitemap\.?(xml|html)$/' => 'sitemap/$1' //sitemap
 
-);
+    );
 
 /**
  * Module protected
  */
-$system_config['modules_protected']['APP'] = array('admin', 'update', 'login');
-$system_config['modules_protected']['BACKGROUND'] = array('_background');
+$zen['config']['modules_protected'] = array('_background', 'admin', 'update', 'login', 'error');
 
 /**
  * Timezone
  */
-$system_config['timezone'] = +7;
+$zen['config']['timezone'] = +7;
 
 /**
  * Date format
  */
-$system_config['date_format'] = 'd-m-Y';
+$zen['config']['date_format'] = 'd-m-Y';
 
 /**
  * Time format
  */
-$system_config['time_format'] = 'H:i';
+$zen['config']['time_format'] = 'H:i';
 
 /**
  * Max upload (kb)
  */
-$system_config['max_file_size'] = 5242880;
+$zen['config']['max_file_size'] = 5242880;
 
 /**
  * File extension allow upload
  */
-$system_config['exts'][] = 'jar';
-$system_config['exts'][] = 'sis';
-$system_config['exts'][] = 'apk';
-$system_config['exts'][] = 'ipa';
-$system_config['exts'][] = 'nth';
-$system_config['exts'][] = 'zip';
-$system_config['exts'][] = 'rar';
-$system_config['exts'][] = 'tar';
-$system_config['exts'][] = 'gtar';
-$system_config['exts'][] = 'gz';
+$zen['config']['exts'][] = 'jar';
+$zen['config']['exts'][] = 'sis';
+$zen['config']['exts'][] = 'apk';
+$zen['config']['exts'][] = 'ipa';
+$zen['config']['exts'][] = 'nth';
+$zen['config']['exts'][] = 'zip';
+$zen['config']['exts'][] = 'rar';
+$zen['config']['exts'][] = 'tar';
+$zen['config']['exts'][] = 'gtar';
+$zen['config']['exts'][] = 'gz';
 
-$system_config['exts'][] = 'mp3';
-$system_config['exts'][] = 'mp4';
-$system_config['exts'][] = '3gp';
-$system_config['exts'][] = 'mid';
+$zen['config']['exts'][] = 'mp3';
+$zen['config']['exts'][] = 'mp4';
+$zen['config']['exts'][] = '3gp';
+$zen['config']['exts'][] = 'mid';
 
-$system_config['exts'][] = 'txt';
-$system_config['exts'][] = 'php';
-$system_config['exts'][] = 'php3';
-$system_config['exts'][] = 'php4';
-$system_config['exts'][] = 'sql';
-$system_config['exts'][] = 'html';
-$system_config['exts'][] = 'js';
-$system_config['exts'][] = 'css';
-$system_config['exts'][] = 'xml';
-$system_config['exts'][] = 'xhtml';
+$zen['config']['exts'][] = 'txt';
+$zen['config']['exts'][] = 'php';
+$zen['config']['exts'][] = 'php3';
+$zen['config']['exts'][] = 'php4';
+$zen['config']['exts'][] = 'sql';
+$zen['config']['exts'][] = 'html';
+$zen['config']['exts'][] = 'js';
+$zen['config']['exts'][] = 'css';
+$zen['config']['exts'][] = 'xml';
+$zen['config']['exts'][] = 'xhtml';
 
-$system_config['exts'][] = 'jpg';
-$system_config['exts'][] = 'jpeg';
-$system_config['exts'][] = 'jpe';
-$system_config['exts'][] = 'png';
-$system_config['exts'][] = 'gif';
-$system_config['exts'][] = 'bmp';
-$system_config['exts'][] = 'ico';
+$zen['config']['exts'][] = 'jpg';
+$zen['config']['exts'][] = 'jpeg';
+$zen['config']['exts'][] = 'jpe';
+$zen['config']['exts'][] = 'png';
+$zen['config']['exts'][] = 'gif';
+$zen['config']['exts'][] = 'bmp';
+$zen['config']['exts'][] = 'ico';
 
 
 /**
  * setting user register
  */
-$system_config['user']['username']['min_length'] = 3; // Min string username
+$zen['config']['user']['username']['min_length'] = 3; // Min string username
 
-$system_config['user']['username']['max_length'] = 30; // Max string username
+$zen['config']['user']['username']['max_length'] = 30; // Max string username
 
-$system_config['user']['password']['min_length'] = 5; // Min string password
+$zen['config']['user']['password']['min_length'] = 5; // Min string password
 
-$system_config['user']['password']['max_length'] = 50; // Max string password
+$zen['config']['user']['password']['max_length'] = 50; // Max string password
 
 
 /**
  * setting user permission
  */
-$system_config['user_perm']['key'] = array(
+$zen['config']['user_perm']['key'] = array(
     'guest' => 0,
     'user_lock' => 1,
     'user_need_active' => 2,
@@ -130,7 +145,7 @@ $system_config['user_perm']['key'] = array(
     'mod' => 4,
     'smod' => 5,
     'admin' => 6);
-$system_config['user_perm']['name'] = array(
+$zen['config']['user_perm']['name'] = array(
     'guest' => 'Khách',
     'user_lock' => 'Tài khoản đã bị khóa',
     'user_need_active' => 'Tài khoản cần kích hoạt',
@@ -138,7 +153,7 @@ $system_config['user_perm']['name'] = array(
     'mod' => 'Mod',
     'smod' => 'Super Mod',
     'admin' => 'Admin');
-$system_config['user_perm']['sign'] = array(
+$zen['config']['user_perm']['sign'] = array(
     'guest' => 'Khách',
     'user_lock' => '<s>Member</s>',
     'user_need_active' => 'Member',
@@ -146,7 +161,7 @@ $system_config['user_perm']['sign'] = array(
     'mod' => 'Mod!',
     'smod' => 'SMod!',
     'admin' => 'Adm!');
-$system_config['user_perm']['color'] = array(
+$zen['config']['user_perm']['color'] = array(
     'guest' => '#555',
     'user_lock' => '#555',
     'user_need_active' => '#555',
@@ -159,7 +174,6 @@ $system_config['user_perm']['color'] = array(
  * For example:
  * With a 'manager' => 'mod', all positions have bigger importance 'mod' are the 'manager'
  */
-$system_config['role'] = array ('manager' => 'mod',
-    'super_manager' => 'smod',
-    'admin' => 'admin');
-
+$zen['config']['role'] = array ('manager' => 'mod',
+                                'super_manager' => 'smod',
+                                'admin' => 'admin');

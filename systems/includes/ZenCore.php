@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -15,123 +29,131 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
  */
 $config = new ZenConfig;
 
+$registry->configOBJ = $config;
+
 /**
  * get config from database
  */
-$system_config['from_db'] = $config->loader();
+$zen['config']['fromDB'] = $config->loader();
 
-/**
- * include the common file
- */
-include_once __SITE_PATH . '/systems/includes/ZenCommon.php';
-
-/**
- * get template
- */
-$registry->template = get_template();
-
-/**
- * set const
- */
-define('_HOME', home());
-define('_TEMPLATE', $registry->template);
-define('_BASE_TEMPLATE', _HOME . '/templates/' . _TEMPLATE);
-
-$temp = new ZenTemplate($registry);
-$temp->setTemp($registry->template);
-$temp->loader();
-
-/**
- * get template config
- */
-$template_config = $temp->template_config;
-$registry->tpl_config = $template_config;
+define('HOME', isset($zen['config']['fromDB']['home']) ? $zen['config']['fromDB']['home'] : getHttpHost());
 
 /**
  * include the functions file
  */
-include_once __SYSTEMS_PATH . '/includes/ZenFunctions.php';
+include __SYSTEMS_PATH . '/includes/ZenFunctions.php';
 
 /**
- * Set const
+ * include the common file
  */
-define('_BASE_TEMPLATE_IMG', _BASE_TEMPLATE.'/'.tpl_config('image_dir'));
-define('_BASE_TEMPLATE_ICON', _BASE_TEMPLATE.'/'.tpl_config('icon_dir'));
-define('_BASE_TEMPLATE_TPL', _BASE_TEMPLATE.'/' . __FOLDER_TPL_NAME);
+require_once __SITE_PATH . '/systems/includes/ZenCommon.php';
 
-define('_PATH_TEMPLATE', __TEMPLATES_PATH.'/'._TEMPLATE);
-define('_PATH_TEMPLATE_TPL', _PATH_TEMPLATE.'/' . __FOLDER_TPL_NAME);
-
-define('_URL_FILES', _HOME.'/files');
-define('_URL_FILES_JS', _URL_FILES.'/js');
-define('_URL_FILES_CSS', _URL_FILES.'/css');
-define('_URL_FILES_SYSTEMS', _URL_FILES.'/systems');
-define('_URL_FILES_IMAGES', _URL_FILES.'/images');
-define('_URL_FILES_POSTS', _URL_FILES.'/posts');
-define('_URL_FILES_FORUM', _URL_FILES.'/forum');
-
-define('_URL_TEMPLATES', _HOME.'/templates');
-define('_URL_MODULES', _HOME.'/modules');
 /**
- * Load data user
+ * load security lib
  */
-if (!empty($_SESSION['ss_user_id']) && !empty($_SESSION['ss_zen_token'])) {
+$registry->security = load_library('security');
 
-    $user_hash_id = $_SESSION['ss_user_id'];
-    $zen_token = $_SESSION['ss_zen_token'];
+define('REAL_HOME', getHttpHost());
+define('_URL_FILES', HOME . '/files');
+define('_URL_FILES_SYSTEMS', _URL_FILES . '/systems');
+define('_URL_FILES_POSTS', _URL_FILES . '/posts');
+define('_URL_FILES_FORUM', _URL_FILES . '/forum');
+define('_URL_TEMPLATES', HOME . '/templates');
+define('_URL_MODULES', HOME . '/modules');
 
-} elseif (!empty($_COOKIE['ck_user_id']) && !empty($_COOKIE['ck_zen_token'])) {
-
-    $user_hash_id = $_COOKIE['ck_user_id'];
-    $zen_token = $_COOKIE['ck_zen_token'];
-    $_SESSION['ck_user_id'] = $_COOKIE['ck_user_id'];
-    $_SESSION['ck_zen_token'] = $_COOKIE['ck_zen_token'];
-
+/**
+ * Validate user data
+ */
+/**
+ * validate user session
+ */
+if (!empty($_SESSION['ZENSS_USER_ID']) && !empty($_SESSION['ZENSS_LOGIN_TOKEN'])) {
+    $user_hash_id = $_SESSION['ZENSS_USER_ID'];
+    $zen_login_token = $_SESSION['ZENSS_LOGIN_TOKEN'];
+    /**
+     * validate user cookie
+     */
+} else if (!empty($_COOKIE['ZENCK_USER_ID']) && !empty($_COOKIE['ZENCK_LOGIN_TOKEN'])) {
+    $user_hash_id = $_COOKIE['ZENCK_USER_ID'];
+    $zen_login_token = $_COOKIE['ZENCK_LOGIN_TOKEN'];
+    $_SESSION['ZENSS_USER_ID'] = $_COOKIE['ZENCK_USER_ID'];
+    $_SESSION['ZENSS_LOGIN_TOKEN'] = $_COOKIE['ZENCK_LOGIN_TOKEN'];
+    /**
+     * gen token for a request
+     */
+    genRequestToken();
 }
 
 $u = array();
 $registry->user = array();
-
-if (!empty($user_hash_id) && !empty($zen_token)) {
-
-    $uid = base64_decode($user_hash_id) - ZEN_WORKID;
-
-    $zen_token = md5(base64_decode($zen_token));
-
-    $udata = _load_user($uid);
-
-    if ($udata) {
-
-        if ($zen_token == $udata['password']) {
-
+if (!empty($user_hash_id) && !empty($zen_login_token)) {
+    /**
+     * decode user id
+     */
+    $uid = _decode_user_id($user_hash_id);
+    /**
+     * load user data
+     */
+    $uData = _load_user($uid);
+    if ($uData) {
+        /**
+         * generator login token from password
+         */
+        if ($zen_login_token == md5($uData['password'])) {
+            /**
+             * update login
+             */
             _update_login($uid);
+            $registry->user = $uData;
+        } else _clean_user_data_log();
+    } else _clean_user_data_log();
+} else _clean_user_data_log();
 
-            $registry->user = $udata;
-
-        } else {
-
-            _clean_user_data_log();
-        }
-    } else {
-
-        _clean_user_data_log();
-    }
-} else {
-
-    _clean_user_data_log();
-}
 /**
- * unregister globals var
+ * get template from database
+ */
+$registry->template = getTemplate();
+/**
+ * review template
+ */
+if (is(ROLE_MANAGER)) {
+    if (isset($_GET['template'])) {
+        $registry->template = $_GET['template'];
+    }
+}
+
+/**
+ * set define
+ */
+define('TEMPLATE', $registry->template);
+define('_BASE_TEMPLATE', HOME . '/templates/' . TEMPLATE);
+define('_BASE_TEMPLATE_TPL', _BASE_TEMPLATE . '/' . __FOLDER_TPL_NAME);
+define('_PATH_TEMPLATE', __TEMPLATES_PATH . '/' . TEMPLATE);
+define('_PATH_TEMPLATE_TPL', _PATH_TEMPLATE . '/' . __FOLDER_TPL_NAME);
+
+/**
+ * init template class
+ */
+$temp = new ZenTemplate($registry);
+$temp->setTemp($registry->template);
+$temp->loader();
+$registry->templateOBJ = $temp;
+
+/**
+ * get template config
+ */
+$registry->tplConfig = $temp->template_config;
+
+/**
+ * un register globals var
  */
 unregister_globals();
 
 if (isset($registry->user['id']) ) {
-
     define('IS_MEMBER', TRUE);
+} else define('IS_MEMBER', FALSE);
 
-} else {
-
-    define('IS_MEMBER', FALSE);
-}
-
+/**
+ * load user helper
+ */
 load_helper('user');

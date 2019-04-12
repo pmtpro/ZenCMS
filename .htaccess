@@ -1,7 +1,7 @@
-RewriteEngine on
-# Đường dẫn chính của thư mục làm việc
-# Ví dụ: http://localhost/ => RewriteBase /
-# Nếu thư mục làm việc là http://localhost/zencms/ => RewriteBase /zencms/
+RewriteEngine On
+# Duong dan chinh cua thu muc lam viec
+# Vi du: http://localhost/ => RewriteBase /
+# Neu thu muc lam viec la http://localhost/zencms/ => RewriteBase /zencms/
 RewriteBase /
 RewriteRule ^files\/(.*)\.php$ download/get?_file_=$1.php [L,QSA]
 RewriteCond %{REQUEST_FILENAME} !-f

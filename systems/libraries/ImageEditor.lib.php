@@ -1,18 +1,31 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 class ImageEditor
 {
-
     public $src, $image = false, $wdith, $height, $dstInfo, $type;
     var $image_type;
     var $path = '';
@@ -121,7 +134,7 @@ class ImageEditor
                 break;
         }
         if ($permissions != null) {
-            changemod($file, $permissions);
+            changeMod($file, $permissions);
         }
         $this->set_error("Can't create image from $file");
         return false;
@@ -159,39 +172,6 @@ class ImageEditor
         $width = $this->getWidth() * $scale / 100;
         $height = $this->getheight() * $scale / 100;
         $this->resize($width, $height);
-    }
-
-    function resize2($maxWidth, $maxHeight, $holdRatio = FALSE)
-    {
-        if ($width >= $this->getWidth() or $height >= $this->getHeight()) {
-            return true;
-        }
-        if ($holdRatio) {
-            $srcRatio = $this->width / $this->height;
-            $destRatio = $maxHeight ? $maxWidth / $maxHeight : 0;
-            if ($destRatio > $srcRatio || $maxHeight == 0) {
-                $dstWidth = $maxWidth;
-                $dstHeight = round($maxWidth / $srcRatio);
-            } else {
-                $dstWidth = round($maxHeight * $srcRatio);
-                $dstHeight = $maxHeight;
-            }
-        } else {
-            $dstHeight = $maxHeight;
-            $dstWidth = $maxWidth;
-        }
-
-        $new_image = imagecreatetruecolor($dstWidth, $dstHeight);
-        imagealphablending($new_image, false);
-        if ($new_image) {
-            $ok = imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $dstWidth, $dstHeight, $this->getWidth(), $this->getHeight());
-            imagesavealpha($new_image, true);
-            $this->image = $new_image;
-            if ($ok)
-                return true;
-            return false;
-        }
-        return false;
     }
 
     public function resize($maxWidth = 0, $maxHeight = 0, $holdRatio = FALSE)

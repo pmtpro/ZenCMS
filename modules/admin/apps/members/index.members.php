@@ -2,30 +2,40 @@
 /**
  * folder_name = Thành viên
  * position = 10
+ * icon = icon-group
  */
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 $model = $obj->model->get('admin');
-
-$data['page_title'] = 'Thành viên';
-
-$path = __MODULES_PATH . '/admin/apps/members';
-
 /** @noinspection PhpParamsInspection */
-$data['menus'] = get_apps($path, 'admin/members');
-
-$tree[] = url(_HOME.'/admin', 'Admin CP');
-$tree[] = url(_HOME.'/admin/members', $data['page_title']);
-$data['display_tree'] = display_tree($tree);
-
+$data['menus'] = get_apps('admin/apps/members', 'admin/members');
+$page_title = 'Thành viên';
+$tree[] = url(HOME.'/admin', 'Admin CP');
+$tree[] = url(HOME.'/admin/members', $page_title);
+ZenView::set_breadcrumb($tree);
+ZenView::set_title($page_title);
 $obj->view->data = $data;
 $obj->view->show('admin/members/index');

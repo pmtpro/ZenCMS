@@ -1,78 +1,95 @@
 <?php
-
+/**
+ * ZenCMS Software
+ * Copyright 2012-2014 ZenThang
+ * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
+ */
 /**
  * define home url
  */
-define('_HOME', get_home_url());
+define('HOME', get_home_url());
 
-function get_home_url(){
-
-    $scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'];
-
-    $home = sprintf('%s://%s/', $scheme, $host);
-
-    $home = trim($home, '/');
-
-    return $home;
+function update_key($key, $value) {
+    global $db;
+    $query = $db->query("SELECT * FROM `zen_cms_config` WHERE `key`='$key'");
+    if (!$db->num_row($query)) {
+        if (!$db->query("INSERT INTO `zen_cms_config` SET `key`='$key'")) {
+            return false;
+        }
+    }
+    return $db->query("UPDATE `zen_cms_config` SET `value`='$value' WHERE `key`='$key'");
 }
 
 
+function get_home_url(){
+    $scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'];
+    $home = sprintf('%s://%s/', $scheme, $host);
+    $home = trim($home, '/');
+    return $home;
+}
+
 function load_message() {
-
     global $data;
-
     if (isset ($data['errors'])) {
-
-        echo '<div class="error">' . $data['errors'] . '</div>';
+        echo '<div class="alert alert-error">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  <strong>Lỗi:</strong> ' . $data['errors'] . '
+</div>';
     }
-
     if (isset ($data['notices'])) {
-
-        echo '<div class="notice">' . $data['notices'] . '</div>';
+        echo '<div class="alert alert-block">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  <strong>Chú ý:</strong> ' . $data['notices'] . '
+</div>';
     }
-
     if (isset ($data['success'])) {
-
-        echo '<div class="success">' . $data['success'] . '</div>';
+        echo '<div class="alert alert-success">
+  <button type="button" class="close" data-dismiss="alert">×</button>
+  ' . $data['success'] . '
+</div>';
     }
 }
 
 if (!function_exists('redirect')) {
-
     function redirect($url = '', $msg = '')
     {
-
         if (empty($url)) {
-            $url = _HOME . $_SERVER['REQUEST_URI'];
+            $url = HOME . $_SERVER['REQUEST_URI'];
         }
-
         if (preg_match('/^http/', $url)) {
-
             $link = $url;
-
         } else {
-
             if (preg_match('~^/~', $url)) {
-
-                $link = _HOME . $url;
+                $link = HOME . $url;
             } else {
-
-                if (preg_match('/^(\?|&)/', $url)) $link = _HOME . $_SERVER['REQUEST_URI'] . $url;
-
-                else $link = _HOME . '/' . $url;
+                if (preg_match('/^(\?|&)/', $url)) $link = HOME . $_SERVER['REQUEST_URI'] . $url;
+                else $link = HOME . '/' . $url;
             }
         }
-
         if (!empty($msg)) {
-
             $_SESSION['msg']['success'] = $msg;
-
             session_write_close();
         }
-
         header("Location: $link");
-
     }
 }
 

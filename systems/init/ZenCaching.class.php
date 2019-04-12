@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -15,14 +29,30 @@ class ZenCaching
 
     static $modname;
     static $var;
+    static $location;
+
+    static function set_location($lo = 'data') {
+        self::$location = $lo;
+    }
+
+    static function encode($data) {
+        return gzdeflate(serialize($data));
+    }
+
+    static function decode($data) {
+        return unserialize(gzinflate($data));
+    }
 
     /**
      * @return string
      */
-    private function cacheDir()
-    {
-
-        return __FILES_PATH . '/systems/cache/data';
+    static function cacheDir() {
+        if (!empty(self::$location)) {
+            $dir = self::$location;
+        } else {
+            $dir = 'data';
+        }
+        return __FILES_PATH . '/systems/cache/' . $dir;
     }
 
     /**
@@ -31,38 +61,28 @@ class ZenCaching
      * @param $name
      * @param $data
      * @param $time_hold
+     * @return bool
      */
-    static function set($name, $data, $time_hold)
-    {
-
+    static function set($name, $data, $time_hold) {
         if (!is_numeric($time_hold)) {
-
             $time_hold = 300;
         }
-
         $time_expired = time() + $time_hold;
-
         $basename = self::createName($name);
-
+        if (!$basename) return false;
         $name = $basename . '.' . $time_expired;
-
         $file = $name . '.caching';
-
         $cacheDir = self::cacheDir();
-
-        $data = serialize($data);
-
+        $data = self::encode($data);
         $scan = glob($cacheDir . '/' . $basename . '.*');
-
         if (is_array($scan)) {
-
             foreach ($scan as $cache) {
-
-                unlink($cache);
+                if (file_exists($cache) && is_file($cache) && is_readable($cache)) {
+                    unlink($cache);
+                }
             }
         }
         file_put_contents($cacheDir . '/' . $file, $data);
-
     }
 
     /**
@@ -71,76 +91,58 @@ class ZenCaching
      * @param $name
      * @return mixed|null
      */
-    static function get($name)
-    {
-
-
+    static function get($name) {
         $basename = self::createName($name);
-
         $cacheDir = self::cacheDir();
-
         $scan = glob($cacheDir . '/' . $basename . '.*');
-
         if (is_array($scan)) {
-
             foreach ($scan as $cache) {
-
-                $filename = basename($cache);
-
-                $ex = explode('.', $filename);
-
-                $scan_time_expired = $ex[3];
-
-                if (time() > $scan_time_expired) {
-
-                    $GLOBALS['count']['cache']++;
-
-                    return null;
+                if (is_file($cache) && is_readable($cache)) {
+                    $filename = basename($cache);
+                    $ex = explode('.', $filename);
+                    $scan_time_expired = $ex[2];
+                    if (time() > $scan_time_expired) {
+                        $GLOBALS['count']['cache']++;
+                        return null;
+                    }
+                    $data = file_get_contents($cache);
+                    return self::decode($data);
                 }
-
-                $data = file_get_contents($cache);
-
-                return unserialize($data);
             }
         }
     }
 
     /**
      * clean cache
-     * if empty $name then clean all cache
-     *
-     * @param string $name
+     * if empty $function_name then clean all cache of class
+     * @param string $function_name
+     * @param string $class
+     * @return bool
      */
-    static function clean($name = '')
-    {
-
+    static function clean($function_name = '', $class = '') {
         $cacheDir = self::cacheDir();
-
-        if (empty ($name)) {
-
-            $scanall = glob($cacheDir . '/*');
-
-            if (is_array($scanall)) {
-
-                foreach ($scanall as $f) {
-
-                    unlink($f);
-                }
-            }
-            return;
+        if (empty($class)) {
+            $debug = debug_backtrace();
+            $class = $debug[1]['class'];
+        }
+        $class_folder = $cacheDir . '/' . $class;
+        if (!file_exists($class_folder) || !is_dir($class_folder)) {
+            return false;
         }
 
-
-        $debug = debug_backtrace();
-
-        $modname = $debug[1]['class'] . '-' . $name;
-
-        $scan = glob($cacheDir . '/Cache.' . md5($modname) . '*');
-
+        if (empty ($function_name)) {
+            $scanAll = glob($class_folder . '/*');
+            if (is_array($scanAll)) {
+                foreach ($scanAll as $f) {
+                    if (is_file($f) && is_readable($f)) unlink($f);
+                }
+            }
+            return true;
+        }
+        $glob_match = $class_folder . '/' . md5($function_name) . '.*';
+        $scan = glob($glob_match);
         if (is_array($scan)) {
-
             foreach ($scan as $cache) {
-
                 unlink($cache);
             }
         }
@@ -150,14 +152,22 @@ class ZenCaching
      * @param $name
      * @return string
      */
-    private function createName($name)
-    {
-
+    static function createName($name) {
         $cache_info = debug_backtrace();
+        $folder_auto_create = $cache_info[2]['class'];
+        $mk_folder_path = self::cacheDir() . '/' . $folder_auto_create;
+        if (!file_exists($mk_folder_path)) {
+            if (mkdir($mk_folder_path)) $folder_exists = true;
+            else $folder_exists = false;
+        } else $folder_exists = true;
 
-        $mod_name = $cache_info[2]['class'] . '-' . $cache_info[2]['function'];
-
-        return 'Cache.' . md5($mod_name) . '.' . md5($name);
+        if ($folder_exists) {
+            if (is_writable($mk_folder_path) && !file_exists($mk_folder_path . '/index.php')) {
+                file_put_contents($mk_folder_path . '/index.php', '');
+            }
+            $base_file_name = $folder_auto_create . '/' . md5($cache_info[2]['function']) . '.' . md5($name);
+            return $base_file_name;
+        }
+        return false;
     }
-
 }

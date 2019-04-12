@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -15,7 +29,7 @@ if (!function_exists('show_nick')) {
     function show_nick($var, $link = false, $show_color = true)
     {
 
-        $perm = sys_config('user_perm');
+        $perm = sysConfig('user_perm');
 
         $user_data = get_user_data($var);
 
@@ -45,7 +59,7 @@ if (!function_exists('show_nick')) {
 
                 $add = '';
             }
-            return '<a href="' . _HOME . '/account/wall/' . $user_data['username'] . '" '.$link_color.' '.$add.'>' . $out . '</a>';
+            return '<a href="' . HOME . '/account/wall/' . $user_data['username'] . '" '.$link_color.' '.$add.'>' . $out . '</a>';
         }
     }
 
@@ -56,7 +70,7 @@ if (!function_exists('show_perm_sign')) {
     function show_perm_sign($var) {
 
         $user = get_user_data($var);
-        $cfg_perm = sys_config('user_perm');
+        $cfg_perm = sysConfig('user_perm');
         $cfg_sign = $cfg_perm['sign'];
         return $cfg_sign[$user['perm']];
     }
@@ -85,10 +99,8 @@ if (!function_exists('get_user_data')) {
                 $u = $user;
             }
 
-            $user_data = model()->_get_user_data($u, array('id', 'username', 'nickname', 'perm'));
+            $user_data = model('account')->get_user_data($u, array('id', 'username', 'nickname', 'perm'));
         }
         return $user_data;
     }
 }
-
-?>

@@ -1,0 +1,1535 @@
+/*
+Theme Name: mTaiGame
+Description: mTaiGame Theme
+Version: 1.0
+Author: Harryz
+Author URI: http://mtaigame.com
+Tags: white ,menus,wap
+*/
+
+body {
+    font: 13px Verdana, Arial, Helvetica, sans-serif;
+    font-size: small;
+    background-color: #e1ddda;
+    color: #3C3C3C;
+    margin: 0;
+}
+
+#wrapper {
+    max-width: 600px;
+    border: 1px solid #D1CCCC;
+    background-color: #edeff4;
+    margin: 0 auto;
+}
+
+img.aligncenter, div.aligncenter, p.aligncenter {
+    text-align: center;
+    margin: 0 auto;
+}
+
+#bread {
+    background-color: #ddd;
+    color: #0053ad;
+    margin: 0;
+    padding: 4px;
+}
+
+.logo {
+    text-align: center;
+}
+
+.banner {
+    text-align: center;
+    color: #ececec;
+}
+
+.navbar span.item {
+    font-weight: 700;
+    color: #fff;
+    line-height: 24px;
+    padding: 2px;
+}
+
+.navbar {
+    text-align: center;
+    background: #E74946;
+    font-family: verdana;
+}
+
+h1 {
+    font-size: 15px;
+    margin: 0;
+    padding: 4px;
+}
+
+h2 {
+    font-size: 14px;
+    background-repeat: repeat-x;
+    background-position: bottom;
+    margin: 0;
+}
+
+h4 {
+    font-size: 13px;
+    color: #0053ad;
+    margin: 0;
+}
+
+h5 {
+    font-weight: 400;
+    text-align: justify;
+    font-size: 13px;
+    margin: 1px;
+}
+
+.boxnotice {
+    background: url(http://taigamechode.com/images/notice.gif) 0 50% no-repeat scroll #fff8e7;
+    border: 1px dashed #f9cc60;
+    font-size: 12px;
+    padding: 5px 3px 5px 20px;
+    margin-top: 10px;
+}
+
+.khungbv p {
+    margin-top: 2px;
+    margin-bottom: 3px;
+}
+
+.khungbv h3 {
+    font-weight: 700;
+    font-size: 14px;
+    margin: 0;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.khungbv {
+    background: #F2F6F8;
+    border-bottom: 1px dashed #cacaca;
+    padding: 5px;
+}
+
+.khungbv h2 {
+    text-align: center;
+    padding: 1px;
+}
+
+.singleh1 {
+    background: #fff8e7;
+    border: #DBDBDB 1px dashed;
+    padding: 3px;
+}
+
+.singleh1 p {
+    font-family: Verdana;
+    margin: 0 auto;
+}
+
+.singleh1 h1 {
+    padding: 0;
+}
+
+ul {
+    background-color: #FFF;
+    margin: 0;
+}
+
+img {
+}
+
+.post-content img {
+    max-width: 95%;
+}
+
+a {
+    color: #069;
+    text-decoration: none;
+}
+
+a:hover, a:active {
+    text-decoration: none;
+    color: red;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+#tnt_pagination {
+    padding: 8px;
+}
+
+.active_tnt_link {
+    margin-left: 2px;
+    margin-right: 4px;
+}
+
+.attachment-post-thumbnail {
+    border-radius: 19%;
+    border: 1px solid #d8d8d8;
+}
+
+h3, li {
+    font-weight: 700;
+    font-size: 14px;
+    margin: 0;
+}
+
+.thongtin p {
+    margin: 1px auto 0;
+}
+
+.taive a {
+    font-family: Verdana;
+    font-size: 12px;
+    background: url(http://taigamehot.mobi/download.png) no-repeat;
+    padding-left: 13px;
+    font-weight: 700;
+    margin-left: 2px;
+}
+
+.footer {
+    border-top: 3px solid #50720B;
+    background: #669313;
+    text-align: center;
+    color: #fff;
+    padding: 3px;
+}
+
+.billing {
+    padding: 0px 10px 0px 10px;
+}
+
+.footer a {
+    color: #FFF;
+}
+
+.menu h1, .menu h1 a {
+    font-size: 14px;
+    color: #FFF;
+}
+
+.menu h3, .menu h4 {
+    font-size: 13px;
+    color: #FFF;
+}
+
+.custom {
+    margin-left: 4px;
+    padding: 4px 2px;
+}
+
+.nav {
+    background: #E0EEE0;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.menu a {
+    color: #FFF;
+
+}
+
+.nav a {
+    color: #6A5ACD;
+}
+
+.menu {
+    background-color: #73a822;
+    color: #FFF;
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0 auto;
+    padding: 7px 5px 7px;
+}
+
+.wap-breadcrumb {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background-color: #fff;
+    padding-left: 5px;
+}
+
+.row2 {
+    border-image: none;
+    height: auto;
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 3px;
+}
+
+.row2:nth-child(odd) {
+    background-color: #F8F8F8;
+}
+
+.row1 {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 5px;
+    border-bottom: 1px dashed #CECECE;
+    background: #ffffff;
+}
+div.row1:last-child {
+    border-bottom: 0px;
+}
+
+.pa {
+    padding: 5px;
+    padding-left: 6px;
+}
+
+.post-content {
+    background: #fff;
+    padding: 5px;
+    padding-top: 5px;
+    padding-bottom: 7px;
+}
+
+.left {
+    text-align: center;
+    float: left;
+    max-width: 70px;
+    width: 20%;
+    padding: 14px 10px;
+}
+
+.left a {
+    display: block;
+    height: 72px;
+    width: 72px;
+}
+
+#info {
+    padding-left: 90px;
+    padding-top: 14px;
+}
+
+.info {
+    padding-left: 90px;
+    padding-top: 14px;
+}
+
+.mid_info {
+    color: #414142;
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.mid_info p {
+    margin: 0;
+}
+
+.right {
+    float: right;
+    height: 73px;
+    max-width: 46px;
+    width: 17%;
+}
+
+.hot {
+    background-color: lightYellow;
+    border-color: #E6DB55;
+}
+
+.cate {
+    border-bottom: 1px #B3B3B3 dashed;
+    padding: 4px 1px 4px 3px;
+}
+
+.cate a {
+    margin-left: 4px;
+    font-weight: 700;
+}
+
+.page {
+    margin: 5px;
+    padding: 4px;
+}
+
+.page span {
+    padding: 2px 5px 2px 5px;
+    margin: 4px;
+    border: 1px solid #808080;
+    border-radius: 3px;
+    background-color: #E0EEE0;
+}
+
+.page .active {
+    background-color: #E6DB55;
+}
+
+blockquote p {
+    font-size: 12px;
+    background: url(http://taigamehot.mobi/download.png) no-repeat;
+    color: #756565;
+    margin-left: 5px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+blockquote {
+    border: 1px dashed #D1D0D0;
+    margin: 9px 4px 8px 0;
+}
+
+blockquote a {
+    margin-left: 14px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+.blleft {
+    text-align: left;
+}
+
+.blocks_list_cm {
+    padding: 3px 5px;
+    color: #666;
+}
+
+.blocks_list_cm .name {
+    font-weight: bold;
+    color: #990000;
+}
+
+.blocks_list_cmt {
+    font-size: 12px;
+    background-color: #fff;
+    border-bottom: 1px dotted #ececec;
+}
+
+.commentlist {
+    border-color: #DDDDDD;
+    border-width: 1px;
+    color: #222;
+    display: block;
+    font-size: 12px;
+    line-height: 16px;
+    text-decoration: none;
+}
+
+/** Fix boostrap **/
+.zen-register-box {
+    float: none;
+    margin: auto;
+
+}
+
+.form-group {
+    display: block;
+    position: none;
+    float: none;
+    margin-bottom: 3px;
+}
+
+.form-control {
+    padding: -3px;
+    margin: 4px;
+    max-width: 300px;
+}
+
+.btn {
+    padding: -3px;
+    margin: 5px;
+}
+
+div[class*='col-'] {
+    padding: auto;
+    margin: auto;
+    display: block;
+    float: none;
+}
+
+@font-face {
+    font-family: 'Glyphicons Halflings';
+
+    src: url('fonts/glyphicons-halflings-regular.eot');
+    src: url('fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('fonts/glyphicons-halflings-regular.woff') format('woff'), url('fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+}
+
+/** Icon bootstrap **/
+.glyphicon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.glyphicon-asterisk:before {
+    content: "\2a";
+}
+
+.glyphicon-plus:before {
+    content: "\2b";
+}
+
+.glyphicon-euro:before {
+    content: "\20ac";
+}
+
+.glyphicon-minus:before {
+    content: "\2212";
+}
+
+.glyphicon-cloud:before {
+    content: "\2601";
+}
+
+.glyphicon-envelope:before {
+    content: "\2709";
+}
+
+.glyphicon-pencil:before {
+    content: "\270f";
+}
+
+.glyphicon-glass:before {
+    content: "\e001";
+}
+
+.glyphicon-music:before {
+    content: "\e002";
+}
+
+.glyphicon-search:before {
+    content: "\e003";
+}
+
+.glyphicon-heart:before {
+    content: "\e005";
+}
+
+.glyphicon-star:before {
+    content: "\e006";
+}
+
+.glyphicon-star-empty:before {
+    content: "\e007";
+}
+
+.glyphicon-user:before {
+    content: "\e008";
+}
+
+.glyphicon-film:before {
+    content: "\e009";
+}
+
+.glyphicon-th-large:before {
+    content: "\e010";
+}
+
+.glyphicon-th:before {
+    content: "\e011";
+}
+
+.glyphicon-th-list:before {
+    content: "\e012";
+}
+
+.glyphicon-ok:before {
+    content: "\e013";
+}
+
+.glyphicon-remove:before {
+    content: "\e014";
+}
+
+.glyphicon-zoom-in:before {
+    content: "\e015";
+}
+
+.glyphicon-zoom-out:before {
+    content: "\e016";
+}
+
+.glyphicon-off:before {
+    content: "\e017";
+}
+
+.glyphicon-signal:before {
+    content: "\e018";
+}
+
+.glyphicon-cog:before {
+    content: "\e019";
+}
+
+.glyphicon-trash:before {
+    content: "\e020";
+}
+
+.glyphicon-home:before {
+    content: "\e021";
+}
+
+.glyphicon-file:before {
+    content: "\e022";
+}
+
+.glyphicon-time:before {
+    content: "\e023";
+}
+
+.glyphicon-road:before {
+    content: "\e024";
+}
+
+.glyphicon-download-alt:before {
+    content: "\e025";
+}
+
+.glyphicon-download:before {
+    content: "\e026";
+}
+
+.glyphicon-upload:before {
+    content: "\e027";
+}
+
+.glyphicon-inbox:before {
+    content: "\e028";
+}
+
+.glyphicon-play-circle:before {
+    content: "\e029";
+}
+
+.glyphicon-repeat:before {
+    content: "\e030";
+}
+
+.glyphicon-refresh:before {
+    content: "\e031";
+}
+
+.glyphicon-list-alt:before {
+    content: "\e032";
+}
+
+.glyphicon-lock:before {
+    content: "\e033";
+}
+
+.glyphicon-flag:before {
+    content: "\e034";
+}
+
+.glyphicon-headphones:before {
+    content: "\e035";
+}
+
+.glyphicon-volume-off:before {
+    content: "\e036";
+}
+
+.glyphicon-volume-down:before {
+    content: "\e037";
+}
+
+.glyphicon-volume-up:before {
+    content: "\e038";
+}
+
+.glyphicon-qrcode:before {
+    content: "\e039";
+}
+
+.glyphicon-barcode:before {
+    content: "\e040";
+}
+
+.glyphicon-tag:before {
+    content: "\e041";
+}
+
+.glyphicon-tags:before {
+    content: "\e042";
+}
+
+.glyphicon-book:before {
+    content: "\e043";
+}
+
+.glyphicon-bookmark:before {
+    content: "\e044";
+}
+
+.glyphicon-print:before {
+    content: "\e045";
+}
+
+.glyphicon-camera:before {
+    content: "\e046";
+}
+
+.glyphicon-font:before {
+    content: "\e047";
+}
+
+.glyphicon-bold:before {
+    content: "\e048";
+}
+
+.glyphicon-italic:before {
+    content: "\e049";
+}
+
+.glyphicon-text-height:before {
+    content: "\e050";
+}
+
+.glyphicon-text-width:before {
+    content: "\e051";
+}
+
+.glyphicon-align-left:before {
+    content: "\e052";
+}
+
+.glyphicon-align-center:before {
+    content: "\e053";
+}
+
+.glyphicon-align-right:before {
+    content: "\e054";
+}
+
+.glyphicon-align-justify:before {
+    content: "\e055";
+}
+
+.glyphicon-list:before {
+    content: "\e056";
+}
+
+.glyphicon-indent-left:before {
+    content: "\e057";
+}
+
+.glyphicon-indent-right:before {
+    content: "\e058";
+}
+
+.glyphicon-facetime-video:before {
+    content: "\e059";
+}
+
+.glyphicon-picture:before {
+    content: "\e060";
+}
+
+.glyphicon-map-marker:before {
+    content: "\e062";
+}
+
+.glyphicon-adjust:before {
+    content: "\e063";
+}
+
+.glyphicon-tint:before {
+    content: "\e064";
+}
+
+.glyphicon-edit:before {
+    content: "\e065";
+}
+
+.glyphicon-share:before {
+    content: "\e066";
+}
+
+.glyphicon-check:before {
+    content: "\e067";
+}
+
+.glyphicon-move:before {
+    content: "\e068";
+}
+
+.glyphicon-step-backward:before {
+    content: "\e069";
+}
+
+.glyphicon-fast-backward:before {
+    content: "\e070";
+}
+
+.glyphicon-backward:before {
+    content: "\e071";
+}
+
+.glyphicon-play:before {
+    content: "\e072";
+}
+
+.glyphicon-pause:before {
+    content: "\e073";
+}
+
+.glyphicon-stop:before {
+    content: "\e074";
+}
+
+.glyphicon-forward:before {
+    content: "\e075";
+}
+
+.glyphicon-fast-forward:before {
+    content: "\e076";
+}
+
+.glyphicon-step-forward:before {
+    content: "\e077";
+}
+
+.glyphicon-eject:before {
+    content: "\e078";
+}
+
+.glyphicon-chevron-left:before {
+    content: "\e079";
+}
+
+.glyphicon-chevron-right:before {
+    content: "\e080";
+}
+
+.glyphicon-plus-sign:before {
+    content: "\e081";
+}
+
+.glyphicon-minus-sign:before {
+    content: "\e082";
+}
+
+.glyphicon-remove-sign:before {
+    content: "\e083";
+}
+
+.glyphicon-ok-sign:before {
+    content: "\e084";
+}
+
+.glyphicon-question-sign:before {
+    content: "\e085";
+}
+
+.glyphicon-info-sign:before {
+    content: "\e086";
+}
+
+.glyphicon-screenshot:before {
+    content: "\e087";
+}
+
+.glyphicon-remove-circle:before {
+    content: "\e088";
+}
+
+.glyphicon-ok-circle:before {
+    content: "\e089";
+}
+
+.glyphicon-ban-circle:before {
+    content: "\e090";
+}
+
+.glyphicon-arrow-left:before {
+    content: "\e091";
+}
+
+.glyphicon-arrow-right:before {
+    content: "\e092";
+}
+
+.glyphicon-arrow-up:before {
+    content: "\e093";
+}
+
+.glyphicon-arrow-down:before {
+    content: "\e094";
+}
+
+.glyphicon-share-alt:before {
+    content: "\e095";
+}
+
+.glyphicon-resize-full:before {
+    content: "\e096";
+}
+
+.glyphicon-resize-small:before {
+    content: "\e097";
+}
+
+.glyphicon-exclamation-sign:before {
+    content: "\e101";
+}
+
+.glyphicon-gift:before {
+    content: "\e102";
+}
+
+.glyphicon-leaf:before {
+    content: "\e103";
+}
+
+.glyphicon-fire:before {
+    content: "\e104";
+}
+
+.glyphicon-eye-open:before {
+    content: "\e105";
+}
+
+.glyphicon-eye-close:before {
+    content: "\e106";
+}
+
+.glyphicon-warning-sign:before {
+    content: "\e107";
+}
+
+.glyphicon-plane:before {
+    content: "\e108";
+}
+
+.glyphicon-calendar:before {
+    content: "\e109";
+}
+
+.glyphicon-random:before {
+    content: "\e110";
+}
+
+.glyphicon-comment:before {
+    content: "\e111";
+}
+
+.glyphicon-magnet:before {
+    content: "\e112";
+}
+
+.glyphicon-chevron-up:before {
+    content: "\e113";
+}
+
+.glyphicon-chevron-down:before {
+    content: "\e114";
+}
+
+.glyphicon-retweet:before {
+    content: "\e115";
+}
+
+.glyphicon-shopping-cart:before {
+    content: "\e116";
+}
+
+.glyphicon-folder-close:before {
+    content: "\e117";
+}
+
+.glyphicon-folder-open:before {
+    content: "\e118";
+}
+
+.glyphicon-resize-vertical:before {
+    content: "\e119";
+}
+
+.glyphicon-resize-horizontal:before {
+    content: "\e120";
+}
+
+.glyphicon-hdd:before {
+    content: "\e121";
+}
+
+.glyphicon-bullhorn:before {
+    content: "\e122";
+}
+
+.glyphicon-bell:before {
+    content: "\e123";
+}
+
+.glyphicon-certificate:before {
+    content: "\e124";
+}
+
+.glyphicon-thumbs-up:before {
+    content: "\e125";
+}
+
+.glyphicon-thumbs-down:before {
+    content: "\e126";
+}
+
+.glyphicon-hand-right:before {
+    content: "\e127";
+}
+
+.glyphicon-hand-left:before {
+    content: "\e128";
+}
+
+.glyphicon-hand-up:before {
+    content: "\e129";
+}
+
+.glyphicon-hand-down:before {
+    content: "\e130";
+}
+
+.glyphicon-circle-arrow-right:before {
+    content: "\e131";
+}
+
+.glyphicon-circle-arrow-left:before {
+    content: "\e132";
+}
+
+.glyphicon-circle-arrow-up:before {
+    content: "\e133";
+}
+
+.glyphicon-circle-arrow-down:before {
+    content: "\e134";
+}
+
+.glyphicon-globe:before {
+    content: "\e135";
+}
+
+.glyphicon-wrench:before {
+    content: "\e136";
+}
+
+.glyphicon-tasks:before {
+    content: "\e137";
+}
+
+.glyphicon-filter:before {
+    content: "\e138";
+}
+
+.glyphicon-briefcase:before {
+    content: "\e139";
+}
+
+.glyphicon-fullscreen:before {
+    content: "\e140";
+}
+
+.glyphicon-dashboard:before {
+    content: "\e141";
+}
+
+.glyphicon-paperclip:before {
+    content: "\e142";
+}
+
+.glyphicon-heart-empty:before {
+    content: "\e143";
+}
+
+.glyphicon-link:before {
+    content: "\e144";
+}
+
+.glyphicon-phone:before {
+    content: "\e145";
+}
+
+.glyphicon-pushpin:before {
+    content: "\e146";
+}
+
+.glyphicon-usd:before {
+    content: "\e148";
+}
+
+.glyphicon-gbp:before {
+    content: "\e149";
+}
+
+.glyphicon-sort:before {
+    content: "\e150";
+}
+
+.glyphicon-sort-by-alphabet:before {
+    content: "\e151";
+}
+
+.glyphicon-sort-by-alphabet-alt:before {
+    content: "\e152";
+}
+
+.glyphicon-sort-by-order:before {
+    content: "\e153";
+}
+
+.glyphicon-sort-by-order-alt:before {
+    content: "\e154";
+}
+
+.glyphicon-sort-by-attributes:before {
+    content: "\e155";
+}
+
+.glyphicon-sort-by-attributes-alt:before {
+    content: "\e156";
+}
+
+.glyphicon-unchecked:before {
+    content: "\e157";
+}
+
+.glyphicon-expand:before {
+    content: "\e158";
+}
+
+.glyphicon-collapse-down:before {
+    content: "\e159";
+}
+
+.glyphicon-collapse-up:before {
+    content: "\e160";
+}
+
+.glyphicon-log-in:before {
+    content: "\e161";
+}
+
+.glyphicon-flash:before {
+    content: "\e162";
+}
+
+.glyphicon-log-out:before {
+    content: "\e163";
+}
+
+.glyphicon-new-window:before {
+    content: "\e164";
+}
+
+.glyphicon-record:before {
+    content: "\e165";
+}
+
+.glyphicon-save:before {
+    content: "\e166";
+}
+
+.glyphicon-open:before {
+    content: "\e167";
+}
+
+.glyphicon-saved:before {
+    content: "\e168";
+}
+
+.glyphicon-import:before {
+    content: "\e169";
+}
+
+.glyphicon-export:before {
+    content: "\e170";
+}
+
+.glyphicon-send:before {
+    content: "\e171";
+}
+
+.glyphicon-floppy-disk:before {
+    content: "\e172";
+}
+
+.glyphicon-floppy-saved:before {
+    content: "\e173";
+}
+
+.glyphicon-floppy-remove:before {
+    content: "\e174";
+}
+
+.glyphicon-floppy-save:before {
+    content: "\e175";
+}
+
+.glyphicon-floppy-open:before {
+    content: "\e176";
+}
+
+.glyphicon-credit-card:before {
+    content: "\e177";
+}
+
+.glyphicon-transfer:before {
+    content: "\e178";
+}
+
+.glyphicon-cutlery:before {
+    content: "\e179";
+}
+
+.glyphicon-header:before {
+    content: "\e180";
+}
+
+.glyphicon-compressed:before {
+    content: "\e181";
+}
+
+.glyphicon-earphone:before {
+    content: "\e182";
+}
+
+.glyphicon-phone-alt:before {
+    content: "\e183";
+}
+
+.glyphicon-tower:before {
+    content: "\e184";
+}
+
+.glyphicon-stats:before {
+    content: "\e185";
+}
+
+.glyphicon-sd-video:before {
+    content: "\e186";
+}
+
+.glyphicon-hd-video:before {
+    content: "\e187";
+}
+
+.glyphicon-subtitles:before {
+    content: "\e188";
+}
+
+.glyphicon-sound-stereo:before {
+    content: "\e189";
+}
+
+.glyphicon-sound-dolby:before {
+    content: "\e190";
+}
+
+.glyphicon-sound-5-1:before {
+    content: "\e191";
+}
+
+.glyphicon-sound-6-1:before {
+    content: "\e192";
+}
+
+.glyphicon-sound-7-1:before {
+    content: "\e193";
+}
+
+.glyphicon-copyright-mark:before {
+    content: "\e194";
+}
+
+.glyphicon-registration-mark:before {
+    content: "\e195";
+}
+
+.glyphicon-cloud-download:before {
+    content: "\e197";
+}
+
+.glyphicon-cloud-upload:before {
+    content: "\e198";
+}
+
+.glyphicon-tree-conifer:before {
+    content: "\e199";
+}
+
+.glyphicon-tree-deciduous:before {
+    content: "\e200";
+}
+
+/** Form Bootstrap **/
+label {
+    display: block;
+    margin: 5px;
+}
+
+.form-control {
+    display: block;
+    width: 60%;
+    padding: 2px 4px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    -webkit-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+
+.form-control:focus {
+    border-color: #66afe9;
+    outline: 0;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+}
+
+.btn {
+    display: inline-block;
+    padding: 3px 5px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn.active:focus {
+    outline: thin dotted;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+
+.btn:hover,
+.btn:focus {
+    color: #333;
+    text-decoration: none;
+}
+
+.btn:active,
+.btn.active {
+    background-image: none;
+    outline: 0;
+    -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+}
+
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn {
+    pointer-events: none;
+    cursor: not-allowed;
+    filter: alpha(opacity=65);
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    opacity: .65;
+}
+
+.btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active,
+.open .dropdown-toggle.btn-default {
+    color: #333;
+    background-color: #ebebeb;
+    border-color: #adadad;
+}
+
+.btn-default:active,
+.btn-default.active,
+.open .dropdown-toggle.btn-default {
+    background-image: none;
+}
+
+.btn-default.disabled,
+.btn-default[disabled],
+fieldset[disabled] .btn-default,
+.btn-default.disabled:hover,
+.btn-default[disabled]:hover,
+fieldset[disabled] .btn-default:hover,
+.btn-default.disabled:focus,
+.btn-default[disabled]:focus,
+fieldset[disabled] .btn-default:focus,
+.btn-default.disabled:active,
+.btn-default[disabled]:active,
+fieldset[disabled] .btn-default:active,
+.btn-default.disabled.active,
+.btn-default[disabled].active,
+fieldset[disabled] .btn-default.active {
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.btn-default .badge {
+    color: #fff;
+    background-color: #333;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #428bca;
+    border-color: #357ebd;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.open .dropdown-toggle.btn-primary {
+    color: #fff;
+    background-color: #3276b1;
+    border-color: #285e8e;
+}
+
+.btn-primary:active,
+.btn-primary.active,
+.open .dropdown-toggle.btn-primary {
+    background-image: none;
+}
+
+.btn-primary.disabled,
+.btn-primary[disabled],
+fieldset[disabled] .btn-primary,
+.btn-primary.disabled:hover,
+.btn-primary[disabled]:hover,
+fieldset[disabled] .btn-primary:hover,
+.btn-primary.disabled:focus,
+.btn-primary[disabled]:focus,
+fieldset[disabled] .btn-primary:focus,
+.btn-primary.disabled:active,
+.btn-primary[disabled]:active,
+fieldset[disabled] .btn-primary:active,
+.btn-primary.disabled.active,
+.btn-primary[disabled].active,
+fieldset[disabled] .btn-primary.active {
+    background-color: #428bca;
+    border-color: #357ebd;
+}
+
+.btn-primary .badge {
+    color: #428bca;
+    background-color: #fff;
+}
+
+/** Alert Bootstrap **/
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert h4 {
+    margin-top: 0;
+    color: inherit;
+}
+
+.alert .alert-link {
+    font-weight: bold;
+}
+
+.alert > p,
+.alert > ul {
+    margin-bottom: 0;
+}
+
+.alert > p + p {
+    margin-top: 5px;
+}
+
+.alert-dismissable {
+    padding-right: 35px;
+}
+
+.alert-dismissable .close {
+    position: relative;
+    top: -2px;
+    right: -21px;
+    color: inherit;
+}
+
+.alert-success {
+    color: #3c763d;
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+}
+
+.alert-success hr {
+    border-top-color: #c9e2b3;
+}
+
+.alert-success .alert-link {
+    color: #2b542c;
+}
+
+.alert-info {
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+}
+
+.alert-info hr {
+    border-top-color: #a6e1ec;
+}
+
+.alert-info .alert-link {
+    color: #245269;
+}
+
+.alert-warning {
+    color: #8a6d3b;
+    background-color: #fcf8e3;
+    border-color: #faebcc;
+}
+
+.alert-warning hr {
+    border-top-color: #f7e1b5;
+}
+
+.alert-warning .alert-link {
+    color: #66512c;
+}
+
+.alert-danger {
+    color: #a94442;
+    background-color: #f2dede;
+    border-color: #ebccd1;
+}
+
+.alert-danger hr {
+    border-top-color: #e4b9c0;
+}
+
+.alert-danger .alert-link {
+    color: #843534;
+}
+
+.close {
+    display: none;
+}

@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -16,41 +30,38 @@ if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 $GLOBALS['count']['cache'] = 0;
 
 /**
- * include info source
+ * include PHP lib
  */
-include_once __SYSTEMS_PATH . '/includes/PHP/lib.php';
+require __SYSTEMS_PATH . '/includes/PHP/lib.php';
 
 /**
  * include version
  */
-include_once __SYSTEMS_PATH . '/includes/config/ZenVERSION.php';
-
-/**
- * include info source
- */
-include_once __SYSTEMS_PATH . '/includes/config/ZenINFO.php';
+require __SYSTEMS_PATH . '/includes/config/ZenVERSION.php';
 
 /**
  * include private file
  */
-include_once __SYSTEMS_PATH . '/includes/config/ZenPRIVATE.php';
+require __SYSTEMS_PATH . '/includes/config/ZenPRIVATE.php';
 
 /**
  * include database info
  */
-include_once __SYSTEMS_PATH . '/includes/config/ZenDB.php';
+if (file_exists(__SYSTEMS_PATH . '/includes/config/ZenDB.php')) {
+    require __SYSTEMS_PATH . '/includes/config/ZenDB.php';
+}
 
 /**
  * include main config
  */
-include_once __SYSTEMS_PATH . '/includes/config/ZenMAINCONFIG.php';
+require __SYSTEMS_PATH . '/includes/config/ZenMAINCONFIG.php';
 
 /**
  * include define
  */
-include_once __SYSTEMS_PATH . '/includes/config/ZenDEFINE.php';
+require __SYSTEMS_PATH . '/includes/config/ZenDEFINE.php';
 
 /**
  * include mime types
  */
-include_once __SYSTEMS_PATH . '/includes/config/ZenMIMETYPES.php';
+require __SYSTEMS_PATH . '/includes/config/ZenMIMETYPES.php';

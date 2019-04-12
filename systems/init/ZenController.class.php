@@ -1,25 +1,39 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 Abstract Class ZenController
 {
-    /*
+    /**
      * @registry object
      */
-
     public $registry;
     public $model;
     public $view;
     public $hook;
+    public $widget;
     public $config;
     public $settings;
     public $user;
@@ -27,23 +41,21 @@ Abstract Class ZenController
     public $temp;
 
     /**
-     *
      * @param object $registry
      */
     function __construct($registry)
     {
-
-        $this->model = & ZenModel::getInstance($registry);
+        $this->model = &ZenModel::getInstance($registry);
         $registry->model = $this->model;
-        $this->temp = & Zentemplate::getInstance($registry);
+        $this->temp = &Zentemplate::getInstance($registry);
         $registry->temp = $this->temp;
-        $this->view = & ZenView::getInstance($registry);
+        $this->view = &ZenView::getInstance($registry);
         $registry->view = $this->view;
-        $this->config = & ZenConfig::getInstance($registry);
+        $this->config = &ZenConfig::getInstance($registry);
         $registry->config = $this->config;
-        $this->hook = & ZenHook::getInstance($registry);
+        $this->hook = &ZenHook::getInstance($registry);
         $registry->hook = $this->hook;
-        $this->settings = & ZenSettings::getInstance();
+        $this->settings = &ZenSettings::getInstance();
         $registry->settings = $this->settings;
         $this->registry = $registry;
         $this->user = $registry->user;
@@ -53,5 +65,3 @@ Abstract Class ZenController
      * @all controllers must contain an index method
      */
 }
-
-?>

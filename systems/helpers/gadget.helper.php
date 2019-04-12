@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -14,11 +28,10 @@ if (!function_exists('gadget_search_push')) {
 
     function gadget_search_push($formname = 'SearchPushUp')
     {
-
         return '<script type="text/javascript">
                 <!--
                 function submit' . $formname . '() {
-                    this.action = "' . _HOME . '/search-" + this.key.value + "" + this.action;
+                    if (this.key.value) this.action = "' . HOME . '/search-" + this.key.value + "" + this.action;
                 }
                 window.onload = function() {
                     document.' . $formname . '.onsubmit = submit' . $formname . ';
@@ -28,10 +41,118 @@ if (!function_exists('gadget_search_push')) {
     }
 }
 
+if (!function_exists('gadget_ckeditor')) {
+    function gadget_ckeditor($elementID = 'content', $options = array()) {
+        global $registry;
+        if (is_mobile()) return;
+        ZenView::append_foot('<script type="text/javascript" src="' . _URL_FILES_SYSTEMS . '/js/ckeditor/ckeditor.js?ver=234"></script>');
+
+        $gadget_list_sm = array();
+        $user = $registry->user;
+        if (!empty($user['id']) && is_array($user['smiles'])) {
+            $list_smile = list_smile();
+            foreach ($user['smiles'] as $sm) {
+                $gadget_list_sm[] = array(
+                    'full_url' => $list_smile[$sm]['full_url'],
+                    'key' => $sm
+                );
+            }
+        }
+
+        if (empty($options['type'])) {
+            $options['type'] == 'html';
+        }
+
+        if ($options['type'] == 'bbcode') {
+            $find_bbcode = false;
+            $hash_plugin = explode(',', $options['config']['extraPlugins']);
+            foreach($hash_plugin as $plugin) {
+                if (trim($plugin) == 'bbcode') {
+                    $find_bbcode = true;
+                    break;
+                }
+            }
+            if ($find_bbcode == false) {
+                $options['config']['extraPlugins'] = 'bbcode,' . $options['config']['extraPlugins'];
+            }
+        } elseif ($options['type'] == 'mini-bbcode') {
+            $options['config']['extraPlugins'] = 'bbcode,image2';
+            $options['config']['height'] = '70px';
+            $options['config']['toolbar'] = array(
+                array(
+                    'name' => 'basicstyles',
+                    'items' => array('Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor')
+                ),
+                array(
+                    'name' => 'links',
+                    'items' => array('Link', 'Unlink', '-', 'Image', 'Youtube', 'Flash', 'Smiley')
+                ),
+                array(
+                    'name' => 'styles',
+                    'items' => array('Styles', 'Format', 'Font', 'FontSize', 'RemoveFormat')
+                )
+            );
+        } elseif ($options['type'] == 'mini-html') {
+            $options['config']['height'] = '70px';
+            $options['config']['toolbar'] = array(
+                array(
+                    'name' => 'basicstyles',
+                    'items' => array('Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor')
+                ),
+                array(
+                    'name' => 'links',
+                    'items' => array('Link', 'Unlink', '-', 'Image', 'Youtube', 'Flash', 'Smiley')
+                ),
+                array(
+                    'name' => 'styles',
+                    'items' => array('Styles', 'Format', 'Font', 'FontSize', 'RemoveFormat')
+                )
+            );
+        }
+
+        if (!empty($gadget_list_sm)) {
+            $options['config']['smiley_images'] = $gadget_list_sm;
+        }
+
+        /**
+         * define ckeditor config: height
+         */
+        if (empty($options['config']['height'])) {
+            $options['config']['height'] = "600px";
+        }
+
+        /**
+         * define ckeditor config: removePlugins
+         */
+        if (empty($options['config']['removePlugins'])) {
+            $options['config']['removePlugins'] = "image";
+        }
+
+        /**
+         * define ckeditor config: extraPlugins
+         */
+        if (empty($options['config']['extraPlugins'])) {
+            $options['config']['extraPlugins'] = "codemirror,lineutils,widget,dialog,image2,imagebrowser";
+        }
+
+        /**
+        if (empty($options['config']['filebrowserImageUploadUrl'])) {
+            $options['config']['filebrowserImageUploadUrl'] = HOME . "/api/ckeditor/upload?type=image&token=" . genRequestToken() . "&is-ajax-request";
+        }
+        if (empty($options['config']['filebrowserImageBrowseUrl'])) {
+            $options['config']['filebrowserImageBrowseUrl'] = HOME . "/api/ckeditor/browser?type=image&token=" . genRequestToken() . "&is-ajax-request";
+        }
+        */
+        $append_content_arr = arrayToJson($options['config']);
+
+        $foot = "<script>CKEDITOR.replace('$elementID', $append_content_arr);</script>";
+        ZenView::append_foot($foot);
+    }
+}
+
 if (!function_exists('gadget_loadjs')) {
 
     function gadget_loadjs($name, $dir = _URL_FILES_JS) {
-
         $dir = trim($dir, '/');
         $name = trim($name, '/');
         return '<script language="javascript" type="text/javascript" src="' . $dir . '/' . $name . '"></script>';
@@ -41,14 +162,9 @@ if (!function_exists('gadget_loadjs')) {
 if (!function_exists('gadget_editarea')) {
 
     function gadget_editarea($language = 'php', $filed = 'content') {
-
         $out = '';
-
-        if (is_mobile()) {
-
-            return $out;
-        }
-        return '<script language="javascript" type="text/javascript" src="'._URL_FILES_JS.'/editarea/edit_area_full.js"></script>
+        if (is_mobile()) return $out;
+        return '<script language="javascript" type="text/javascript" src="'._URL_FILES_SYSTEMS.'/js/editarea/edit_area_full.js"></script>
             <script language="javascript" type="text/javascript">
             editAreaLoader.init({
                 id : "'.$filed.'"
@@ -62,165 +178,3 @@ if (!function_exists('gadget_editarea')) {
             </script>';
     }
 }
-/**
- *
- * @param string $type
- * @param boolean $disablade_toolbar
- * @return string
- */
-if (!function_exists('gadget_TinymceEditer')) {
-
-    function gadget_TinymceEditer($type = 'html', $disablade_toolbar = FALSE, $import_data = array())
-    {
-        global $registry;
-
-        $out = '';
-
-        if (is_mobile()) {
-
-            return $out;
-        }
-        $out .= '<script type="text/javascript" src="' . _URL_FILES_JS . '/jquery/jquery-1.9.1.min.js"></script>
-            <script type="text/javascript" src="' . _URL_FILES_JS . '/jquery/jquery-migrate-1.1.1.min.js"></script>
-            <script type="text/javascript" src="' . _URL_FILES_JS . '/snippet/jquery.snippet.min.js"></script>
-            <script type="text/javascript" src="' . _URL_FILES_JS . '/snippet/jquery.snippet.run.js"></script>
-            <link rel="stylesheet" type="text/css" href="' . _URL_FILES_CSS . '/jquery.snippet.min.css">';
-
-        if (isset($import_data['image_list'])) {
-
-            $insert_to_js_image_list = 'image_list:  ' . array_to_json($import_data['image_list']) . ',';
-
-        } else {
-            $insert_to_js_image_list = '';
-        }
-
-        if (isset($import_data['link_list'])) {
-
-            $insert_to_js_link_list = 'link_list:  ' . array_to_json($import_data['link_list']) . ',';
-
-        } else {
-            $insert_to_js_link_list = '';
-        }
-
-        if (!empty($registry->user['id'])) {
-
-            $insert_to_js_smile_list = 'smile_list: ' . array_to_json($registry->user['smiles']) . ',';
-
-        } else {
-            $insert_to_js_smile_list = 'smile_list: [],';
-        }
-
-        $all_smile = unserialize(file_get_contents(__FILES_PATH . '/systems/cache/smiles.dat'));
-
-        $out_sm = array();
-
-        if (isset($registry->user['smiles'])) {
-
-            foreach ($all_smile as $key => $val) {
-
-                if (in_array($key, $registry->user['smiles'])) {
-
-                    $out_sm[$key] = $val;
-                }
-            }
-
-        }
-        $insert_to_js_all_smile = 'all_smile: ' . array_to_json($out_sm) . ',';
-
-        if ($type == 'html') {
-
-            if ($disablade_toolbar == true) {
-
-                $out = '<style> #mce_82 {display: none;}</style>';
-            }
-
-            return $out . '<script type="text/javascript" src="' . _URL_FILES_JS . '/tinymce/tinymce.min.js"></script>
-                        <script type="text/javascript">
-                        tinymce.init({
-                            selector: "textarea#content",
-                            theme: "modern",
-                            plugins: [
-                               "advlist autolink lists link image charmap print preview hr anchor pagebreak",
-                               "searchreplace wordcount visualblocks visualchars code fullscreen",
-                               "insertdatetime nonbreaking save table contextmenu directionality",
-                                "emoticons template textcolor autosave code quote textarea table snippet youtube"
-                            ],
-                            toolbar1: " bold italic underline strikethrough | forecolor backcolor | textarea quote snippet | alignleft aligncenter alignright alignjustify | bullist numlist | outdent indent | styleselect | fontselect fontsizeselect removeformat | table | inserttable | link unlink image youtube | charmap emoticons fullscreen | undo redo | code preview",
-                            menubar: "false",
-                            image_advtab: true,
-                            ' . $insert_to_js_image_list . '
-                            ' . $insert_to_js_link_list . '
-                            ' . $insert_to_js_all_smile . '
-                            ' . $insert_to_js_smile_list . '
-                            height: 300,
-                            entity_encoding : "raw",
-                            convert_fonts_to_spans : true,
-                            convert_urls: false,
-                            document_base_url : "' . _HOME . '",
-                        });
-                        </script>';
-
-        } elseif ($type == 'bbcode') {
-
-            if ($disablade_toolbar == true) {
-
-                $out = '<style> #mce_53 {display: none;}</style>';
-            }
-
-            return $out . '<script type="text/javascript" src="' . _URL_FILES_JS . '/tinymce/tinymce.min.js"></script>
-                        <script type="text/javascript">
-                        tinyMCE.init({
-                                selector: "textarea#content",
-                                theme : "modern",
-                                mode : "none",
-                                plugins : ["bbcode", "code", "textcolor", "link", "image", "wordcount", "preview", "emoticons", "insert_code", "quote", "textarea", "charmap", "fullscreen", "youtube"],
-                                toolbar1: "bold italic underline strikethrough | forecolor removeformat | textarea quote insert_code | alignleft aligncenter alignright | bullist numlist | styleselect | link unlink image youtube | emoticons charmap fullscreen | undo redo | code preview",
-                                menubar: "false",
-                                height: 300,
-                                ' . $insert_to_js_smile_list . '
-                                ' . $insert_to_js_all_smile . '
-                                entity_encoding : "raw",
-                                add_unload_trigger : false,
-                                remove_linebreaks : false,
-                                inline_styles : false,
-                                convert_fonts_to_spans : true,
-                                forced_root_block : false,
-                                convert_urls: false,
-                                document_base_url : "' . _HOME . '",
-                        });
-                        </script>';
-
-        } elseif ($type == 'bbcode_mini') {
-
-            if ($disablade_toolbar == true) {
-
-                $out .= '<style> #mce_39 {display: none;}</style>';
-            }
-
-            return $out . '<script type="text/javascript" src="' . _URL_FILES_JS . '/tinymce/tinymce.min.js"></script>
-                        <script type="text/javascript">
-                        tinyMCE.init({
-                                selector: "textarea#content",
-                                theme : "modern",
-                                mode : "none",
-                                plugins : ["bbcode", "code", "textcolor", "link", "image", "emoticons", "insert_code", "quote", "textarea", "snippet", "youtube"],
-                                toolbar1: "bold italic underline | forecolor | textarea quote insert_code | aligncenter alignright  | bullist numlist | link unlink image youtube emoticons",
-                                menubar: "false",
-                                ' . $insert_to_js_smile_list . '
-                                ' . $insert_to_js_all_smile . '
-                                entity_encoding : "raw",
-                                add_unload_trigger : false,
-                                remove_linebreaks : false,
-                                inline_styles : false,
-                                convert_fonts_to_spans : true,
-                                forced_root_block : false,
-                                convert_urls: false,
-                                document_base_url : "' . _HOME . '",
-                        });
-                        </script>';
-        }
-    }
-
-}
-
-?>

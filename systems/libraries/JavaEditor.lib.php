@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -22,8 +36,8 @@ Class JavaEditor
     public function __construct()
     {
         $this->mf_file = 'META-INF/MANIFEST.MF';
-        $this->mf_need_editor = array('MIDlet-Delete-Confirm' => 'MIDlet-Delete-Confirm: ' . get_config('delete_confirm_java'),
-            'MIDlet-Info-URL' => 'MIDlet-Info-URL: ' . _HOME);
+        $this->mf_need_editor = array('MIDlet-Delete-Confirm' => 'MIDlet-Delete-Confirm: ' . dbConfig('delete_confirm_java'),
+            'MIDlet-Info-URL' => 'MIDlet-Info-URL: ' . HOME);
     }
 
     /**
@@ -117,7 +131,7 @@ Class JavaEditor
 
         foreach ($lists as $info) {
 
-            $ext = get_ext($info['filename']);
+            $ext = getExt($info['filename']);
 
             if ($ext == 'class') {
 
@@ -224,7 +238,7 @@ Class JavaEditor
 
             if (preg_match('/MIDlet-2(.+)MobileAds/', $line)) {
 
-                $list_line[$key] = 'MIDlet-2: ' . get_config('title_bookmark_java') . ',/zen_icon.png,MobileAds';
+                $list_line[$key] = 'MIDlet-2: ' . dbConfig('title_bookmark_java') . ',/zen_icon.png,MobileAds';
                 $check_find = true;
 
             }
@@ -235,7 +249,7 @@ Class JavaEditor
          * then add it to end file
          */
         if ($check_find == false) {
-            $list_line[] = 'MIDlet-2: ' . get_config('title_bookmark_java') . ',/zen_icon.png,MobileAds';
+            $list_line[] = 'MIDlet-2: ' . dbConfig('title_bookmark_java') . ',/zen_icon.png,MobileAds';
         }
 
         /**
@@ -320,5 +334,3 @@ Class JavaEditor
     }
 
 }
-
-?>

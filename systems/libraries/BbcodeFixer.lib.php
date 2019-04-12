@@ -1,14 +1,27 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
-
 /**
  * $BBCODE = new BbcodeFixer();
  * $string = $BBCODE->parse( $string );
@@ -54,6 +67,7 @@ class BbcodeFixer
     /////////////////////////////////////////////////////////////
     function _markup_close_tag($code)
     {
+        $markup = '';
         if (in_array($code, $this->_bbcodetag['opened'])) { // only process if a matching OPENED tag was found. e.g. the last [/b] in "[b]Bold[/b][/b]" will not be processed.
             switch ($code) {
                 case    'b':
@@ -77,6 +91,7 @@ class BbcodeFixer
 
     function _markup_open_tag($code)
     {
+        $markup = '';
         $option = null;
         if (false !== strpos($code, '=')) { // extract "font" and "arial" from bbcode tags with options; like "font=arial" for example.
             $tmp = explode('=', $code, 2);
@@ -151,5 +166,3 @@ class BbcodeFixer
         return ($font);
     }
 }
-
-?>

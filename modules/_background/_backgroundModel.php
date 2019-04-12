@@ -1,185 +1,93 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 Class _backgroundModel Extends ZenModel
 {
 
-    public function _update_config($arr = array())
-    {
-
+    /**
+     * UPDATE CONFIG
+     * @param array $arr
+     * @param array $option
+     * @return bool
+     */
+    public function _update_config($arr = array(), $option = array()) {
+        $locate = '';
+        $for = '';
+        $funcImport = '';
+        $funcExport = '';
+        if (!empty($option['locate'])) {
+            $locate = $option['locate'];
+        }
+        if (!empty($option['for'])) {
+            $for = $option['for'];
+        }
+        if (!empty($option['func_import'])) {
+            $funcImport = $option['func_import'];
+        }
+        if (!empty($option['func_export'])) {
+            $funcExport = $option['func_export'];
+        }
         $arr = $this->db->sqlQuote($arr);
-
         foreach ($arr as $key => $value) {
-
-            $c = $this->db->num_row($this->db->query("SELECT `id` FROM " . tb() . "config where `key`='$key'"));
-
+            $c = $this->db->num_row($this->db->query("SELECT `id` FROM " . tb() . "config where `key`='$key' and `locate`='$locate' and `for`='$for'"));
             if ($c == 0)
-                $this->db->query("INSERT INTO " . tb() . "config SET `key`='$key'");
-
-            $this->db->query("UPDATE " . tb() . "config SET `value`='" . $value . "' where `key`='$key'");
+                $this->db->query("INSERT INTO " . tb() . "config SET `key`='$key', `locate`='$locate', `for`='$for'");
+            $this->db->query("UPDATE " . tb() . "config SET `value`='" . $value . "', `func_import`='$funcImport', `func_export`='$funcExport' where `key`='$key' and `locate`='$locate' and `for`='$for'");
         }
         return true;
-    }
-    /**
-     * get user data
-     *
-     * @param $user
-     * @param string $get_what
-     * @return bool
-     */
-    public function _get_user_data($user, $get_what = '*')
-    {
-
-        $user = $this->db->sqlQuote($user);
-
-        if (is_array($get_what)) {
-
-            $select_what = implode(',', $get_what);
-
-        } else {
-
-            $select_what = $get_what;
-        }
-        if (is_numeric($user)) {
-
-            $pos_where = 'id';
-
-        } else {
-
-            $pos_where = 'username';
-        }
-
-        $_sql = "SELECT $select_what FROM " . tb() . "users where `$pos_where` = '$user'";
-
-        $query = $this->db->query($_sql);
-
-        if (!$this->db->num_row($query)) {
-
-            return false;
-        }
-        $data = $this->db->fetch_array($query);
-
-        return _handle_user_data($this->db->sqlQuoteRm($data));
-    }
-
-    /**
-     * @param $uid
-     * @param $data
-     * @return bool
-     */
-    function _update_user($uid, $data)
-    {
-        $data = $this->db->sqlQuote($data);
-
-        $_sql = $this->db->_sql_update(tb() . "users", $data, array("`id` = '$uid'"));
-
-        if ($this->db->query($_sql)) {
-
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param string $type
-     * @return array|mixed|null
-     */
-    function _get_link_list($type = '')
-    {
-        if (!defined('__MODULE_NAME') || __MODULE_NAME == 'update') {
-
-            return array();
-        }
-
-        $_sql = "SELECT * FROM " . tb() . "link_list where `type` = '$type' order by `id` DESC";
-        /**
-         * get cache
-         */
-        $cache = ZenCaching::get($_sql);
-
-        if ($cache != null) {
-
-            return $cache;
-        }
-
-        $data = array();
-
-        $query = $this->db->query($_sql);
-
-        while ($row = $this->db->fetch_array($query)) {
-
-            $row = $this->db->sqlQuoteRm($row);
-
-            $row['tags'] = unserialize($row['tags']);
-
-            $row['tag_start'] = h_decode($row['tags']['tag_start']);
-
-            $row['tag_end'] = h_decode($row['tags']['tag_end']);
-
-            $data[] = $row;
-        }
-
-        /**
-         * set the new cache
-         */
-        ZenCaching::set($_sql, $data, 86400 * 7);
-
-        return $data;
-    }
-
-    /**
-     * @return bool
-     */
-    function _count_new_message() {
-
-        if (empty( $this->registry->user['id'] ) ) {
-
-            return false;
-        }
-
-        $user = $this->registry->user;
-
-        $_sql = "SELECT MAX(id) as cid FROM " . tb() . "messages  where `readed` = 0 and `to` = '" . $user['username'] . "' GROUP BY `from` order by `time` DESC";
-
-        $count = $this->db->num_row($this->db->query($_sql));
-
-        return $count;
     }
 
     /**
      * get all widget of a widget group
-     *
      * @param $wg
+     * @param string $template
      * @return array
      */
-    function _get_widget_group($wg) {
-
-        global $registry;
-
+    function _get_widget_group($wg, $template = '') {
+        if (empty($template)) {
+            $template = TEMPLATE;
+        }
         $out = array();
-
-        if (!defined('__MODULE_NAME') || __MODULE_NAME == 'update') {
-
+        if (!defined('MODULE_NAME')) {
             return $out;
         }
-
-        $_sql = "SELECT * FROM ".tb()."widgets where `wg` = '$wg' order by `weight` ASC";
-
-        $query = $registry->db->query($_sql);
-
-        while ($row = $registry->db->fetch_array($query)) {
-
-            $out[] = $registry->db->sqlQuoteRm($row);
+        $_sql = "SELECT * FROM ".tb()."widgets WHERE `wg` = '$wg' AND `template` = '$template' ORDER BY `weight` ASC";
+        /**
+         * get cache
+         */
+        $cache = ZenCaching::get($_sql);
+        if ($cache != null) return $cache;//return data if cache is exists
+        $query = $this->db->query($_sql);
+        while ($row = $this->db->fetch_array($query)) {
+            $out[] = $this->db->sqlQuoteRm($row);
         }
+        /**
+         * set the new cache
+         */
+        ZenCaching::set($_sql, $out, 7200);
         return $out;
     }
 }

@@ -1,12 +1,26 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
@@ -14,165 +28,15 @@ class blogHook extends ZenHook
 {
 
     public $upload_error;
-
-    /**
-     *
-     * @param array $data
-     * @return array
-     */
-    function lists_in_folder($data)
-    {
-        /**
-         * get blog model
-         */
-        $model = $this->model->get('blog');
-        /**
-         * load pagination library
-         */
-        $p = load_library('pagination');
-        /**
-         * get hook blog
-         */
-        $this->get('blog');
-        /**
-         * start pagination
-         */
-        $limit = 10;
-        /**
-         * num_post_display_in_folder hook *
-         */
-        $limit = $this->loader('num_post_display_in_folder', $limit);
-
-        $p->setLimit($limit);
-        $p->SetGetPage('page');
-        $start = $p->getStart();
-        $sql_limit = $start.','.$limit;
-
-        $data['posts'] = $model->get_list_blog($data['sid'], 'post', array('weight' => 'ASC', 'time' => 'DESC'), $sql_limit);
-
-        $total = $model->total_result;
-        $p->setTotal($total);
-        $data['posts_pagination'] = $p->navi_page();
-
-
-        $limit_folder = 10;
-
-        /**
-         * num_folder_display_in_folder hook *
-         */
-        $limit_folder = $this->loader('num_folder_display_in_folder', $limit_folder);
-
-        $p->setLimit($limit_folder);
-        $p->SetGetPage('fp');
-        $start = $p->getStart();
-        $sql_limit = $start.','.$limit_folder;
-
-        $data['folders'] = $model->get_list_blog($data['sid'], 'folder', array('weight' => 'ASC', 'time' => 'DESC'), $sql_limit);
-
-        $total = $model->total_result;
-        $p->setTotal($total);
-
-        hook_data(_PUBLIC, 'blog_folder_after_list_folder', $p->navi_page('?fp={fg}'));
-
-        $data['same_cats'] = $model->get_list_blog($data['parent'], 'folder', array('time' => 'DESC'), 5);
-
-        $limit_rand = 10;
-        /**
-         * num_rand_post_display_in_folder hook *
-         */
-        $limit_rand = $this->loader('num_rand_post_display_in_folder', $limit_rand);
-
-        $data['rand_posts'] = $model->get_list_blog(null, 'post', array('RAND()' => ''), $limit_rand);
-
-        return $data;
-    }
-
-    /**
-     *
-     * @param array $data
-     * @return array
-     */
-    function lists_in_post($data)
-    {
-        $model = $this->model->get('blog');
-
-        $data['other_cats'] = $model->get_list_blog(null, 'folder', array('time' => 'DESC'), 5);
-
-        $data['same_posts'] = $model->get_list_blog($data['parent'], 'post', array('time' => 'DESC'), 5);
-
-        return $data;
-    }
-
-    /**
-     *
-     * @param array $data
-     * @return array
-     */
-    function lists_in_index($data)
-    {
-        $model = $this->model->get('blog');
-        $model->what_gets('url, name, title, time, view, icon');
-        $data['new_posts'] = $model->get_list_blog(null, 'post', array('time' => 'DESC'), 10);
-        $data['hot_posts'] = $model->get_list_blog(null, 'post', array('view' => 'DESC'), 5);
-        $data['rand_posts'] = $model->get_list_blog(null, 'post', array('RAND()' => ''));
-        return $data;
-    }
-
-    /**
-     *
-     * @param array $data
-     * @return array
-     */
-    function lists_in_other($data)
-    {
-        $model = $this->model->get('blog');
-
-        $data['rand_posts'] = $model->get_list_blog(null, 'post', array('RAND()' => ''));
-
-        return $data;
-    }
-
-    /**
-     * @param $sid
-     * @return mixed
-     */
-    function post_manager_bar($sid) {
-
-        $arr[_HOME . '/blog/manager/editpost/' . $sid . '/step3'] = 'Sửa';
-        $arr[_HOME . '/blog/manager/links/' . $sid . '/step2'] = 'Links';
-        $arr[_HOME . '/blog/manager/files/' . $sid . '/step2'] = 'Files';
-        $arr[_HOME . '/blog/manager/images/' . $sid . '/step2'] = 'Hình ảnh';
-        $arr[_HOME . '/blog/manager/delete/' . $sid . '/step2'] = 'Xóa';
-        $arr[_HOME . '/blog/manager'] = 'Đến trang quản lí';
-
-        return $arr;
-    }
-
-    /**
-     * @param $sid
-     * @return mixed
-     */
-    function folder_manager_bar($sid) {
-
-        $arr[_HOME . '/blog/manager/newpost/'.$sid.'/step2'] = 'Viết bài';
-
-        $arr[_HOME . '/blog/manager/cpanel/'.$sid] = 'Đến trang quản lí và cài đặt';
-
-        return $arr;
-    }
-
     /**
      *
      * @param array $tags
      * @return array
      */
-    function add_tags($tags)
-    {
+    function add_tags($tags) {
         foreach ($tags as $keytag => $tag) {
             $tag = trim($tag);
-
             if (strlen($tag) < 1) {
-
                 unset($tags[$keytag]);
             }
         }
@@ -183,8 +47,7 @@ class blogHook extends ZenHook
      * @param $content
      * @return mixed
      */
-    function out_content($content)
-    {
+    function out_content($content) {
         return $content;
     }
 
@@ -192,8 +55,7 @@ class blogHook extends ZenHook
      * @param $content
      * @return mixed
      */
-    function out_bbcode_content($content)
-    {
+    function out_bbcode_content($content) {
         return $content;
     }
 
@@ -202,17 +64,16 @@ class blogHook extends ZenHook
      * @return mixed
      */
 
-    function out_html_content($content)
-    {
+    function out_html_content($content) {
         return $content;
     }
 
     /**
      * @param $content
+     * @param $blogData
      * @return mixed
      */
-    function in_content($content)
-    {
+    function in_content($content, $blogData) {
         return $content;
     }
 
@@ -220,8 +81,7 @@ class blogHook extends ZenHook
      * @param $content
      * @return bool|mixed
      */
-    function in_bbcode_content($content)
-    {
+    function in_bbcode_content($content) {
         $content = br2nl($content);
         return $content;
     }
@@ -231,8 +91,7 @@ class blogHook extends ZenHook
      * @param string $content
      * @return string
      */
-    function in_html_content($content)
-    {
+    function in_html_content($content) {
         if (is_mobile()) {
             $content = nl2br($content);
         }
@@ -243,12 +102,38 @@ class blogHook extends ZenHook
      * @param $tag
      * @return array
      */
-    function out_tag($tag) {
+    public function out_tag($tag) {
         return $tag;
     }
 
-    function valid_name($name)
-    {
+    public function valid_data_comment_name($name) {
+        $len = strlen($name);
+        if ($len < 2 || $len > 30) {
+            ZenView::set_error('Tên bạn nhập quá dài', 'comment');
+        }
+        return $name;
+    }
+
+    public function valid_data_comment_msg($msg) {
+        if (strlen($msg) > 200) {
+            ZenView::set_error('Tin nhắn bạn quá dài', 'comment');
+        }
+        return $msg;
+    }
+    /**
+     * Hook out_comment_msg
+     * @param $msg
+     * @return mixed
+     */
+    public function out_comment_msg($msg) {
+        /**
+         * load bbcode library
+         */
+        $bbCode = load_library('bbcode');
+        return $bbCode->parse(parse_smile($msg));
+    }
+
+    public function valid_name($name) {
         $len = strlen($name);
         if ($len < 3) {
             return false;
@@ -257,88 +142,91 @@ class blogHook extends ZenHook
         }
     }
 
-    public function valid_title($title)
-    {
+    public function valid_url($url) {
+        return $url;
+    }
+
+    public function valid_title($title) {
         return $title;
     }
 
-    public function valid_keyword($keyword)
-    {
+    public function valid_keyword($keyword) {
         return $keyword;
     }
 
-    public function valid_des($des)
-    {
+    public function valid_des($des) {
         return $des;
+    }
+
+    public function valid_data_attach_name_link($name) {
+        if (strlen($name) > 100) {
+            ZenView::set_error('Tên link quá dài', 'link-editor');
+        }
+        return $name;
+    }
+
+    public function valid_data_attach_link($link) {
+        $valid = load_library('validation');
+        if (!$valid->isValid('url', $link)) {
+            ZenView::set_error('Không đúng định dạng link', 'link-editor');
+        }
+        return $link;
+    }
+
+    public function valid_data_attach_file_name($file_name) {
+        $seo = load_library('seo');
+        return $seo->url($file_name);
+    }
+
+    public function valid_data_attach_name($name) {
+        if (strlen($name) > 100) {
+            ZenView::set_error('Tên file không được quá 100 kí tự', 'file-editor');
+        }
+        return $name;
     }
 
     public function jar_editor($file) {
 
         $java = load_library('JavaEditor');
-
         $model = $this->model->get('blog');
-
         if (isset($_POST['sub_copyright']) || isset($_POST['sub_copyright_ticked'])) {
-
             $java->loader($file['full_path']);
-
             if(!$java->edit_mf()){
-
                 $process['notices'][] = 'Xin lỗi. Hệ thống không thể chỉnh sửa file này';
             } else {
-
                 $updateStt['status'] = $file['status'];
                 $updateStt['status']['copyright'] = 1;
-
                 $model->update_file($file['id'], $updateStt);
-
                 $process['success'] = 'Gắn bản quyền vào file <b>MANIFEST.MF</b> thành công!';
             }
         }
-
         if (isset($_POST['sub_crack']) || isset($_POST['sub_crack_ticked'])) {
-
             $java->loader($file['full_path']);
-
             if(!$java->crack()){
-
                 $process['notices'][] = 'Xin lỗi. Hệ thống không thể chỉnh sửa file này';
             } else {
-
                 if(!$java->sms_exist()) {
-
                     $updateStt['status'] = $file['status'];
                     $updateStt['status']['crack'] = 1;
-
                     $model->update_file($file['id'], $updateStt);
-
                     $process['success'] = 'File này không chứa thanh toán sms!';
-
                 } else {
                     $updateStt['status'] = $file['status'];
                     $updateStt['status']['crack'] = 1;
-
                     $model->update_file($file['id'], $updateStt);
-
                     $process['success'] = 'Crack thành công!';
                 }
             }
         }
 
         if (isset($_POST['sub_bookmark']) || isset($_POST['sub_bookmark_ticked'])) {
-
             $java->loader($file['full_path']);
-
             if(!$java->setBookmark()){
-
                 $process['notices'][] = 'Xin lỗi. Hệ thống không thể chỉnh sửa file này';
             } else {
-
                 $updateStt['status'] = $file['status'];
                 $updateStt['status']['bookmark'] = 1;
-
                 $model->update_file($file['id'], $updateStt);
-
                 $process['success'] = 'Gắn bookmark thành công!';
             }
         }
@@ -357,7 +245,7 @@ class blogHook extends ZenHook
             $crack_title = 'Click để crack lại';
         } else {
             $crack = 'crack';
-            $crack_title = 'Click file này';
+            $crack_title = 'Crack file này';
         }
         if(isset($file['status']['bookmark']) && $file['status']['bookmark'] ) {
             $bookmark = 'bookmark_ticked';
@@ -372,62 +260,66 @@ class blogHook extends ZenHook
         return $file;
     }
 
-
-    public function import_image($image_list) {
-
-        /**
-         * load upload library
-         */
-        $upload = load_library('upload');
-
-        /**
-         * get blog hook
-         */
-        $this->get('blog');
+    public function upload_icon($in_data, $stream) {
 
         /**
          * set directory upload icon
          */
-        $dir = __FILES_PATH . '/posts/images';
+        $imageUploadDir = __FILES_PATH . '/posts/images';
+        /**
+         * init library
+         */
+        $upload = load_library('upload', array('init_data' => $stream['file_data']));
 
-        $subdir = auto_mkdir($dir);
+        if ($upload->uploaded) {
 
-        $upload->upload_path = $dir . '/' . $subdir;
+            /**
+             * set filename
+             */
+            $upload->file_new_name_body = $stream['file_name'];
+            $upload->allowed = array('image/*');
 
-        $out = array();
+            /**
+             * init upload config
+             */
+            $upload->image_resize = true;
+            $upload->image_ratio = true;
+            $upload->image_x = 100;
 
-        $file_name = '';
+            /**
+             * load upload icon config from stream var
+             */
 
-        if (isset($this->push['import_image_file_name'])) {
-
-            $file_name = $this->push['import_image_file_name'];
-
-        }
-
-        foreach($image_list as $url) {
-
-            $upload->set_file_name($file_name);
-
-            $upload->set_data($url);
-
-            if (!$upload->do_upload()) {
-
-                return false;
-
-            } else {
-
-                $dataImport = $upload->data();
-
-                $out_url['url'] = $subdir . '/' . $dataImport['file_name'];
-
-                $out_url['full_url'] = _URL_FILES_POSTS . '/images/' . $subdir . '/' . $dataImport['file_name'];
-
-                $out_url['full_path'] = $dataImport['full_path'];
-
-                $out[$url] = $out_url;
+            $upload->image_resize = isset($stream['image_resize']) ? $stream['image_resize'] : $upload->image_resize;
+            if ($upload->image_resize) {
+                $upload->image_x = isset($stream['image_x']) ? $stream['image_x'] : $upload->image_x;
+                if (empty($stream['image_ratio'])) {
+                    $upload->image_ratio = false;
+                    $upload->image_y = $upload->image_x;
+                }
             }
-        }
-        return $out;
+
+            /**
+             * auto make directory by month-year
+             */
+            $subDir = autoMkSubDir($imageUploadDir);
+            $upload->process($imageUploadDir . '/' . $subDir);
+            /**
+             * upload icon
+             */
+            if ($upload->processed) {
+                $dataUp = $upload->data();
+                if (file_exists($dataUp['full_path'])) {
+                    if (!empty($stream['blog'])) {
+                        $old_icon = $imageUploadDir . '/' . $stream['blog']['icon'];
+                        if (file_exists($old_icon) && is_readable($old_icon) && $old_icon != $dataUp['full_path']) unlink($old_icon);
+                    }
+                    $icon = $subDir . '/' . $dataUp['file_name'];
+                    return $icon;
+                }
+            } else ZenView::set_error($upload->error, isset($stream['pos_message'])? $stream['pos_message'] : ZPUBLIC);
+        } else ZenView::set_error($upload->error, isset($stream['pos_message'])? $stream['pos_message'] : ZPUBLIC);
+        return $in_data;
     }
 
     public function watermark_image($image_path)
@@ -439,7 +331,7 @@ class blogHook extends ZenHook
 
         $wm->load_src($image_path);
 
-        $wm->load_wm(__FILES_PATH . '/images/logo_watermark/'.get_config('logo_watermark'));
+        $wm->load_wm(__FILES_PATH . '/images/logo_watermark/'.dbConfig('logo_watermark'));
 
 
         if ($wm->do_watermark()) {
@@ -474,7 +366,7 @@ class blogHook extends ZenHook
 
         $dir = __FILES_PATH . '/posts/files_upload';
 
-        $subdir = auto_mkdir($dir);
+        $subdir = autoMkSubDir($dir);
 
         $upload->upload_path = $dir . '/' . $subdir;
 
@@ -520,7 +412,7 @@ class blogHook extends ZenHook
                     $InsertData['uid'] = $registry->user['id'];
                     $InsertData['sid'] = $sid;
                     $InsertData['size'] = $dataup['file_size'];
-                    $InsertData['type'] = get_ext($dataup['file_name']);
+                    $InsertData['type'] = getExt($dataup['file_name']);
 
                     if (isset($_POST['name' . $i]) && strlen($_POST['name' . $i])) {
 
@@ -574,7 +466,7 @@ class blogHook extends ZenHook
 
             $filename = basename($file['url']);
 
-            $ext = get_ext($filename);
+            $ext = getExt($filename);
 
             if (preg_match('/'.$ext.'$/is', $_POST['name'])) {
 
@@ -585,7 +477,13 @@ class blogHook extends ZenHook
 
             $new_name = $new_name . '-' . time() . '.' . $ext;
 
-            $new_url = get_time_dir($file['url']) . '/' . $new_name;
+            /**
+             * get sub directory
+             */
+            $listHash =  explode('/', $file['url']);
+            $num = count($listHash);
+            $timeDir = $listHash[$num - 2];
+            $new_url = $timeDir . '/' . $new_name;
 
             $old_file = $file['full_path'];
 
@@ -680,7 +578,7 @@ class blogHook extends ZenHook
 
         $dir = __SITE_PATH . '/files/posts/images';
 
-        $subdir = auto_mkdir($dir);
+        $subdir = autoMkSubDir($dir);
 
         $upload->upload_path = $dir . '/' . $subdir;
 
@@ -814,9 +712,9 @@ class blogHook extends ZenHook
 
     function recycleBin_manager_bar($sid) {
 
-        $act[] = url(_HOME . '/blog/manager/recycleBin?reblog='.$sid, 'Khôi phục', cfm('Bạn chắc chắn khôi bài này?'));
-        $act[] = url(_HOME . '/blog/manager/recycleBin?move='.$sid, 'Di chuyển');
-        $act[] = url(_HOME . '/blog/manager/recycleBin?delete='.$sid, 'Xóa', cfm('Bạn chắc chắn xóa bài này?'));
+        $act[] = url(HOME . '/blog/manager/recycleBin?reblog='.$sid, 'Khôi phục', cfm('Bạn chắc chắn khôi bài này?'));
+        $act[] = url(HOME . '/blog/manager/recycleBin?move='.$sid, 'Di chuyển');
+        $act[] = url(HOME . '/blog/manager/recycleBin?delete='.$sid, 'Xóa', cfm('Bạn chắc chắn xóa bài này?'));
 
         return $act;
     }

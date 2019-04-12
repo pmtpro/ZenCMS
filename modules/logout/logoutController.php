@@ -1,52 +1,50 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 Class logoutController Extends ZenController
 {
-
     function index()
     {
         /**
          * load security library
          */
         $security = load_library('security');
-
-        /**
-         * set title
-         */
-        $data['page_title'] = 'Thoát';
-
-        if (isset($_POST['sub'])) {
-
-            if ($security->check_token('token_logout')) {
-
+        if (isset($_POST['submit-logout'])) {
+            if ($security->check_token('token-logout')) {
                 $_SESSION = array();
-
-                if (session_destroy() && setcookie('ck_user_id', '', time() - 3600, "/") && setcookie('ck_zen_token', '', time() - 3600, "/")) {
-
-                    $data['success'] = wait_redirect(_HOME, 'Bạn đã thoát thành công!<br/>Bạn sẽ được chuyển đến trang chủ trong vòng {s} nữa', 3);
-
+                if (session_destroy() && setcookie('ZENCK_USER_ID', '', time() - 3600, "/") && setcookie('ZENCK_LOGIN_TOKEN', '', time() - 3600, "/")) {
+                    ZenView::set_success('Thoát thành công!', ZPUBLIC, HOME);
                     session_unset();
-
-                } else {
-
-                    $data['errors'][] = 'Lỗi trong khi thoát!';
-                }
+                } else ZenView::set_error('Lỗi trong khi thoát!');
             }
         }
-
-        $data['token_logout'] = $security->get_token('token_logout');
+        ZenView::set_title('Thoát');
+        ZenView::set_url(HOME . '/logout');
+        $data['token-logout'] = $security->get_token('token-logout');
         $this->view->data = $data;
         $this->view->show('logout');
     }
-
 }

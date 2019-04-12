@@ -1,46 +1,57 @@
 <?php
 /**
  * name = Quản lí cache
- * icon = admin_caches_site
+ * icon = icon-circle-arrow-right
  * position = 20
  */
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 load_helper('fhandle');
 
 $path_cache = __FILES_PATH . '/systems/cache/data';
-
-$files = glob($path_cache.'/*');
-
-if (isset($_POST['sub_delete_cache'])) {
-
-    foreach ($files as $f) {
-
-        unlink($f);
+$dir_list = glob($path_cache.'/*', GLOB_ONLYDIR);
+if (isset($_POST['submit-delete-cache'])) {
+    foreach ($dir_list as $dir) {
+        rrmdir($dir);
     }
-    $data['success'] = 'Thành công';
+    ZenView::set_success(1);
 }
-
-$files = glob($path_cache.'/*');
-
-$data['total_cache'] = count($files);
-
-$data['total_cache_size'] = foldersize($path_cache);
-
-$data['page_title'] = 'Quản lí cache';
-$tree[] = url(_HOME.'/admin', 'Admin CP');
-$tree[] = url(_HOME.'/admin/caches', 'Caches');
-$tree[] = url(_HOME.'/admin/caches/site', $data['page_title']);
-$data['display_tree'] = display_tree($tree);
+$data['total_cache'] = 0;
+$data['total_cache_size'] = 0;
+$dir_list = glob($path_cache.'/*', GLOB_ONLYDIR);
+if ($dir_list) foreach ($dir_list as $dir) {
+    $list_cache = glob($dir . '/*');
+    $data['total_cache'] += count($list_cache);
+    $data['total_cache_size'] += foldersize($dir);
+}
+ZenView::set_tip('Có tất cả <b>' . $data['total_cache'] . '</b> file cache trong hệ thống chiếm <b>' . size2text($data['total_cache_size']) . '</b>');
+ZenView::set_title('Quản lí cache');
+$tree[] = url(HOME.'/admin', 'Admin CP');
+$tree[] = url(HOME.'/admin/caches', 'Caches');
+$tree[] = url(HOME.'/admin/caches/site', 'Quản lí cache');
+ZenView::set_breadcrumb($tree);
 $obj->view->data = $data;
 $obj->view->show('admin/caches/site');
-?>

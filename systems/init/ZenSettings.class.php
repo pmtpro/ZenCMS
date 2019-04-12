@@ -1,87 +1,62 @@
 <?php
 /**
  * ZenCMS Software
- * Author: ZenThang
- * Email: thangangle@yahoo.com
- * Website: http://zencms.vn or http://zenthang.com
- * License: http://zencms.vn/license or read more license.txt
- * Copyright: (C) 2012 - 2013 ZenCMS
+ * Copyright 2012-2014 ZenThang
  * All Rights Reserved.
+ *
+ * This file is part of ZenCMS.
+ * ZenCMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License.
+ *
+ * ZenCMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with ZenCMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package ZenCMS
+ * @copyright 2012-2014 ZenThang
+ * @author ZenThang
+ * @email thangangle@yahoo.com
+ * @link http://zencms.vn/ ZenCMS
+ * @license http://www.gnu.org/licenses/ or read more license.txt
  */
 if (!defined('__ZEN_KEY_ACCESS')) exit('No direct script access allowed');
 
 Class ZenSettings
 {
-    /**
-     * @the vars array
-     * @access private
-     */
-
-    private $vars = array();
     public $registry;
     static $instance;
     public $setting = array();
-    /**
-     *
-     * @set undefined vars
-     *
-     * @param string $index
-     *
-     * @param mixed $value
-     *
-     * @return void
-     *
-     */
-    public function __set($index, $value)
-    {
-        $this->vars[$index] = $value;
-    }
+    public static $get_setting = array();
 
     /**
-     *
-     * @get variables
-     *
-     * @param mixed $index
-     *
-     * @return mixed
-     *
+     * @return ZenSettings
      */
-    public function __get($index)
-    {
-        if (isset($this->vars[$index]))
-            return $this->vars[$index];
-    }
-
-    public static function getInstance()
-    {
-
+    public static function getInstance() {
         if (!self::$instance) {
             self::$instance = new ZenSettings();
         }
         return self::$instance;
     }
 
-    public function get($name)
-    {
-
-        $file = __MODULES_PATH . '/' . $name . '/' . str_replace("Settings", "", strtolower($name)) . "Settings.php";
+    /**
+     * @param $name
+     * @return null|object
+     */
+    public function get($name) {
+        $class = $name . 'Settings';
+        $file = __MODULES_PATH . '/' . $name . '/' . $class . ".php";
 
         if (file_exists($file)) {
-
             include_once($file);
-
-            $class = str_replace("Settings", "", strtolower($name)) . "Settings";
-
             if (class_exists($class, false)) {
-
                 return new $class();
             } else {
-
                 return NULL;
             }
         }
-
         return NULL;
     }
-
 }
